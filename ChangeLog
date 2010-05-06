@@ -1,0 +1,421 @@
+To email a contributor remove "DELETE" from the email address.
+(The DELETEs are necessary as this list is published online.)
+
+2009/04/30 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA RELEASE     RELEASE_2-70b4_APR-30-2010
+ * include/joedog.h       wrapped *nprintf functions with ndef __CYGWIN__
+ * src/version.c          Increment: 2.70b4
+
+2009/04/05 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA RELEASE *   RELEASE_2-70b3_APR-28-2010
+ * src/load.c             Changed detection of binary file types based
+                          on file name extensions.
+ * src/http.h             Added definitions for REQBUF and POSTBUF
+ * src/http.c             Changed the size of POST request to REQBUF+POSTBUF
+ * src/main.c             Added fix to prevent segfault on unsupported protocol
+ * src/version.c          Increment: 2.70b3
+
+2010/03/11 "Raul Martinez Jr" <juney.m@DELETEgmail.com>
+ * SIEGE BETA RELEASE     RELEASE_2-70b2_MAR-11-2010
+ * src/main.c             Added an optional log file to -l/--log[=file]
+                          Updated help section with some word smithing
+ * src/version.c          Increment: 2.70b2
+
+2009/07/28 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA RELEASE *   RELEASE_2-70_JUL-28-2009
+ * src/version.c          Increment: 2.70b1
+
+2009/07/27 "Mark Sonnabaum" <marksonnabaum@DELETEgmail.com>
+ * src/cookie.c           Fixed a problem in which cookies aren't returned 
+                          when the domain is stored with a leading dot. This 
+                          software is NINE years old, people. What took so 
+                          long to ID this bug???
+
+2009/05/11 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE RELEASE *        RELEASE_2-69_MAY-11-2009
+
+2009/05/08 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * lib/notify.c           Changed the APIs for error management
+ * lib/memory.c           Refined some of the memory functions
+ * src/*.c                Updated to reflect new libjoedog API
+ * src/ssl.c              Increased the scope of HAVE_SSL
+ * src/sock.c             Increased the scope of HAVE_SSL
+
+2009/04/20 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE RELEASE *        RELEASE_2-68_APR-20-2009
+
+2009/04/20 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 9           RELEASE_2-68b9_Apr-20-2009
+
+2009/04/20 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/ssl.c              Moved SSL_library_init() and 
+                          SSL_load_error_strings() to 
+                          SSL_thread_setup so they are only
+                          called once.
+ * src/version.c          Routine increment (beta 9)
+
+2009/04/13 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 8           RELEASE_2-68b8_Apr-13-2009
+
+2004/04/13 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * utils/config.guess     ugpraded to more recent version
+ * src/version.c          routine increment
+
+2009/04/03 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+  * SIEGE BETA 7          RELEASE_2-68b7_Apr-03-2009
+
+2009/04/03 Tristan Greaves <tristan@NOSPAMextricate.org>
+  * utils/bombardment.in  fixes bashisms in the 'bombardment' script.
+  * doc/                  fixed man pages
+  * utils/                upgraded libtool to 1.5.22
+  * src/version.c         increment to beta 7
+
+2009/04/02 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+  * SIEGE BETA 6          RELEASE_2-68b6_Apr-02-2009
+
+2009/04/02 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * lib/util.c             fixed a leak in substring
+ * src/util.c             fixed a seg fault in parse_time
+ * src/main.c             fixed a seg fault in url reclamation
+ * src/hash.c             added a NULL check for key
+ * src/version.c          increment to beta 6
+
+2009/12/29 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+  * SIEGE BETA 5          RELEASE_2-68b5_Feb-27-2009
+
+2009/02/27 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/client.c           Fixed proxy connect mechanism
+
+2008/12/29 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+  * SIEGE BETA 4          RELEASE_2-68b4_DEC-29-2008
+
+2008/10/10 "Sergio Ruiz" <sruiz@Shopzilla.com>
+ * src/sock.c             Added a read timeout.
+
+2008/08/18 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 3           RELEASE_2-68b3_AUG-18-2008
+
+2008/08/18 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/auth.c             Added a parameter to set_digest_authorization 
+ * src/auth.h             Added a parameter to set_digest_authorization 
+ * src/http.c             Changed digest auth parser 
+ * src/version.c          Version increment
+
+2008/07/25 Francois Pesce <francois.pesce@NOSPAMgmail.com>
+ * src/auth.c             Added digest authentication
+ * src/cfg.c              Improved memory management
+ * src/client.c           Added digest authentication
+ * src/client.h           Added digest date to struct
+ * src/eval.c             Minor improvements
+ * src/http.c             Added http_free_headers and digest auth
+ * src/init.c             Improved the parser
+ * src/main.c             Added digest authentication
+ * src/sock.c             Removed paranoid read checks
+ * src/sock.h             Added data for digest authentication
+ * src/version.c          Increment to 2.68b2
+ * src/url.c              Improved memory management
+
+2008/07/01 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/load.c             Truncated file POSTs over 50K.
+ * src/load.h             Increased the post size to 50K.
+
+2008/05/21 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 1           RELEASE_2-68b1_MAY-21-2008
+
+2008/05/09 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/client             added case 500-509 on return codes
+
+2008/05/09 "Jannic Arsenijevic" <jan.arsenijevic@NOSPAMgmx.net>
+ * src/http.c             fixed memset bug at line 307
+
+2008/04/30 "Richard Lloyd" <richard.lloyd@NOSPAMconnectinternetsolutions.com>
+ * src/ssl.c              added sanity checks around OPENSSL_free 
+ * src/sock.c             added sanity checks around SSL_free
+ * lib/memory.c           assigned ptr to NULL to fail ensuing checks
+
+2008/04/09 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE RELEASE *        RELEASE_2-67_APR-11-2008
+
+2008/04/09 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 5           RELEASE_2-67b5_APR-09-2008
+
+2008/03/31 Vilem Marsick <vmarsik@NOSPAMsuse.cz>
+ * added few more cancellation points
+ * changed condition wait in crew.c to a timed condition wait
+ * fixed a wrong pointer operation in crew_destroy()
+ * removed locks in crew_set_shutdown() that caused deadlocks
+ * changed handler.c so that crew_set_shutdown() is not called 3 times
+
+2007/07/05 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 4           RELEASE_2-67b4_JUL-05-2007
+
+2007/06/06 Peter Bex <peter.bex@NOSPAMxs4all.nl>
+ * configure.in           added check for dlopen() in libc
+ * src/auth.c             code cleanup (fulmer)
+ * src/init.c             code cleanup (fulmer)
+ * joedog/defs.h          added ':' as a separator (fulmer)
+
+2007/05/01 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 3           RELEASE_2-67b3_JUN-01-2007
+
+2007/06/01 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/sock.c             added test for __sun to make blocking
+ * src/version.c          version increment beta 3
+
+2007/04/17 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 2           RELEASE_2-67b2_APR-17-2007
+
+2007/04/14 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * html                   added html subdirectory of PHP test pages
+
+2007/04/12 Hans Bausewein <hansb@NOSPAMcomerwell.xs4all.nl>
+* src/main.c              initialize auth variables and OK 200 for debug
+* src/client.c            reset bids after each successful iteration and
+			  added ok200 
+* src/version.c           routine increment
+
+2007/04/06 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 1           RELEASE_2-67b1_APR-06-2007
+
+2007/04/06 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * lib/perl.c             added int empty();
+ * include/joedog.h       added int empty();
+ * src/date.c             added  char * timetostr(const time_t *T)
+ * src/date.h             added  char * timetostr(const time_t *T)
+ * src/url.h              added char *, BOOLEAN and time_t for cache
+ * src/url.c              added functions related to cache validation
+ * src/http.c             added header parsing for ETag and Last-modified
+ * src/init.c             fixed my.loginurl assignment problem
+ * src/version.c          routine increment 2.67b1
+
+2007/03/30 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE RELEASE *        RELEASE_2-66_MAR-30-2007
+
+2007/03/28 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 3 *         RELEASE_2-66b3_MAR-28-2007
+
+2007/03/27 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * lib/joedog/*.c         code cleanup
+ * src/version.c          routine increment
+
+2007/03/26 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+  * SIEGE BETA 2          RELEASE_2-66b2_MAR-26-2007
+
+2007/03/18 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * configure.in           added a test for buggy pthread initializations
+ * src/sock.c             SSL_write throws a LOT of EAGAINS on solaris. 
+                          the call was placed inside a loop to handle that
+ * src/cookie.h           changed MAX_COOKIE_SIZE to 8K
+ * src/cookie.c           fixed and overflow problem with strncat and 
+                          corrected major problem with cookie expiration.
+                          removed Univserity of Kansas date parse in favor
+                          one from libcurl.
+ * src/http.c             handles cookies up to 8K and discard remainder
+ * src/date.c             added to the distribution
+ * src/date.h             added to the distribution
+ * src/init.c             fixed a problem with parsing proxy host from .siegerc
+ * src/util.c             added uppercase and lowercase functions
+ * src/main.c             convert program name to uppercase in --version
+
+2007/03/01 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 1           RELEASE_2-66b1_MAR-01-2007
+ * src/load.c             added content-type map for file posts
+ * src/http.c             changed the prototypes of http_get and http_post
+ * src/client.c           called http_post and http_get with new prototypes
+ * src/url.h              added conttype
+ * src/url.c              added default content-type for post urls
+
+2006/07/20 Paul Court <g@NOSPAMrgoyle.com>
+ * src/cfg.c              fixed EOF problem
+
+2006/06/14 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE 2.65             RELEASE_2-65_JUN-14-2006
+
+2006/06/14 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/version.c          version increment: 2.65 final release
+
+2006/05/25 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 6           RELEASE_2-65b6_MAY-11-2006
+ * src/http.c             added additional debugging information
+ * src/version.c          routine increment
+ * ChangeLog              pruned back to 2.60 release
+
+2006/05/25 Ionut Turturica<onut.turturica@DELETEgalati.uti.ro>
+ * src/sock.c             fixed blocking problem; added add'l debugging info
+
+2006/05/11 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA 5           RELEASE_2-65b5_MAY-11-2006
+
+2006/05/10 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * src/setup.h            moved cookie and url structs to their appropriate module
+ * src/url.h              added the URL struct
+ * src/cookie             added the cookie struct
+ * src/http.c             minor bug fixes, integrity checks 
+
+2006/05/01 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * SIEGE BETA 4           RELEASE_2-65b4_MAY-01-2006
+
+2006/04/30 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * src/version.h          added to distribution. 
+ * src/url.c              added integrity checks
+ * src/http.c             added integrity checks
+ * src/init.c             added version.h
+ * src/main.c             added version.h
+
+2006/04/25 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * SIEGE BETA 3           RELEASE_2-65b3_APR-25-2006
+
+2006/04/20 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * doc/layingsiege.7.in   changed chapter from 1 to 7
+ * configure.in           changed man chapters.
+ * src/version.c          version increment 2.65b3
+ * utils/siege.config.in  fixed script for portability
+
+2006/04/18 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * SIEGE BETA 2           RELEASE_2-65_APR-18-2006
+
+2006/04/18 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * utils/siege.config.in  fixed the script to work under bash
+ * src/load.c             corrected a problem with fixed lenght content length
+ * src/init.c             added the ability to turn off spinning
+ * src/log.c              changed log error message
+ * src/setup.h            added BOOLEAN spinner
+ * configure.in           changed urls_txt.1 to urls_txt.5
+ * doc/urls_txt.1.in      renamed doc/urls_txt.5.in
+ * doc/Makefile.am        changed urls_txt.1 to urls_txt.5
+
+2005/10/11 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+  * SIEGE 2.64            RELEASE_2-64_OCT-11-2005  
+
+2005/10/11 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * configure.in           added explicit checks for string.h & strings.h
+ * lib/stralloc.c         added config.h and appropriate headers
+
+2005/10/10 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * SIEGE BETA 2           RELEASE_2-64b2_OCT-10-2005  
+
+2005/09/10 Ionut Turturica <ionut.turturica@DELETEgalati.uti.ro>
+ * doc/siegerc.in         added ssl functionality
+ * include/joedog.h       added stralloc
+ * lib/stralloc.c/.h      added to the distribution
+ * src/init.c             added ssl variables; added proxy auth display
+ * src/ssl.c              added cert handling, error display and timeouts
+ * src/url.c              fixed several memory issues
+
+2005/09/09 Nick Galbreath <http://modp.com/>
+ * doc/siege.1.in         added -A/--user-agent documentation
+ * src/main.c             added -A/--user-agent
+ * src/crew.c             fixed a memory flaw, added crew_join
+ * src/crew.h             prototyped crew_join
+
+2005/07/24 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * SIEGE BETA 1           RELEASE_2-64b1_JUL-24-2005  
+
+2005/07/24 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * src/main.c             addition minor fixes
+
+2005/06/14 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact> 
+ * SIEGE 2.63             RELEASE_2-63_JUN-14-2005  
+
+2005/04/08 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml> 
+ * SIEGE BETA 3           RELEASE_2-63b3_MAY-17-2005  
+
+2005/05/10 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml>
+ * src/version.c          version increment
+ * src/crew.c             changed prototypes to size_t; fixed crew_cancel
+ * src/crew.h             changed prototypes to match new parameters
+
+2005/04/08 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml> 
+ * SIEGE BETA 2            RELEASE_2-63b2_APR-28-2005  
+
+2005/04/22 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml>
+ * src/sock.c              minor refinement to the readline function
+
+2005/04/21 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml> 
+ * SIEGE BETA 1            RELEASE_2-63b1_APR-21-2005  
+
+2005/04/20 James Antill <james@DELETEand.org> 
+ * src/sock.c              added logic to break from loop on 0 byte reads
+ * src/http.c              added logic to break from loop on 0 byte reads
+
+2005/04/16 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml>
+ * src/crew.c              added to the distribution
+ * src/crew.h              added to the distribution
+ * src/data.c              added to the distribution
+ * src/data.h              added to the distribution
+ * src/setup.h             removed that pesky global "our" struct
+ * src/handler.c/h         added support for the CREW object
+ * src/main.c              added support for the DATA object
+ * src/log.c/h             added support for the DATA object
+
+2005/04/11 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml> 
+ * SIEGE 2.62              RELEASE_2-62_APR-11-2005 
+
+2005/04/08 Jeffrey Fulmer <http://www.joedog.org/contact/author.shtml> 
+ * SIEGE BETA 5            RELEASE_2-62b5_APR-08-2005  
+
+2005/04/08 Jeff Stearns
+ * src/setup.h             changed data types
+ * src/main.c              changed data types and corresponding printfs
+ * src/client.c            changed data types and corresponding printfs 
+ * src/version.c           version increment
+
+2005/03/10 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * SIEGE BETA 4            RELEASE_2-62b4_MAR-10-2005 
+
+2005/03/10 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * src/main.c              moved all notification to stderr so that users
+                           may capture clean CSV in stdout (sweet!)
+ * src/setup.h             prototype changes from int to BOOLEAN
+ * src/client.c            fixed problem with CSV time reporting
+ * src/log.c               added localtime_r changed int protos to BOOL 
+ * src/log.h               changed int prototypes to BOOLEAN
+ * src/version.c           routine increment; changes to const
+
+2005/03/08 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * SIEGE BETA 3            RELEASE_2-62b3_MAR-08-2005 
+
+2005/03/06 Jeff Fulmer <http://www.joedog.org/contact/author.shtml> 
+ * src/sock.h              added chkbuf for thread safe chunk parsing
+ * src/sock.c              read chunk information into chkbuf
+ * src/version.c           version increment
+ * doc/siegerc.in          changed chunked encoding to true
+
+2005/03/04 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * SIEGE BETA 2            RELEASE_2-62b2_MAR-04-2005 
+
+2005/03/04 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * src/sock.c              added linux-proof test for connectivity
+ * src/main.c              removed division by zero errors in stats
+ * src/version.c           version increment
+ * src/cfg.c               fixed logic in is_variable_line
+
+2005/01/01 Jason Rexilius <jason@hostedlabs.com>
+ * src/client.c            added comma separated style for output; timestamps
+ * src/url.c               added urlIDs to the structure
+ * src/http.c              various ColdFusion fixes.
+
+2004/12/12 Jeremy Echols <http://www.joedog.org/contact/author.shtml>
+ * src/cfg.c               improved variable handling in the urls.txt file
+
+2004/11/19 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * SIEGE 2.61              RELEASE_2-61_NOV-19-2004
+
+2004/11/19 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * src/setup.h             added chunked boolean
+ * src/init.c              added logic to set chunked boolean
+ * src/http.c              implemented chunked boolean
+
+2004/09/11 Jeff Fulmer <http://www.joedog.org/contact/author.shtml>
+ * SIEGE BETA 1            RELEASE_2-61b1_SEP-11-2004
+
+2004/08/08 Kurt Miller <truk@DELETEapache.org>
+ * configure.in            sed -e "s|%_PREFIX%|$bindir|" 
+ * lib/error.c             added #include <stdlib.h>
+ * src/Makefile.in         changed directory references
+ * src/cookie.c            changed cookie id to pthread_t
+ * src/cookie.h            changed cookie id to pthread_t 
+
+2004/07/06 <http://www.joedog.org/contact/author.shtml> 
+ * SIEGE 2.60 RELEASE      RELEASE_2-60_JUL-28-2004
+
