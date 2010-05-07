@@ -240,4 +240,29 @@ pthread_rand_np(unsigned int *ctx)
 #endif
 }
 
+#ifndef strnlen
+size_t
+strnlen(const char *str, size_t len)
+{
+  const char *end = memchr(str, '\0', len);
+  return (end != NULL) ? (size_t) (end - str) : len;
+}
+#endif
 
+#ifndef strncasestr
+const char *
+strncasestr(const char *str1, const char *str2, size_t len)
+{
+  size_t str1_len = strnlen(str1, len);
+  size_t str2_len = strlen(str2);
+  size_t i;
+
+  for(i = 0; i < (str1_len - str2_len + 1); i++){
+    if(strncasecmp(str1, str2, str2_len) == 0){
+        return str1;
+    }
+    str1++;
+  }
+  return NULL;
+}
+#endif

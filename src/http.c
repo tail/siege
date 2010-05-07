@@ -100,6 +100,7 @@ http_get(CONN *C, URL *U)
   int  rlen;
   char *protocol; 
   char *keepalive;
+  char hoststr[512];
   char authwww[512];
   char authpxy[512];
   char request[REQBUF];  
@@ -112,6 +113,7 @@ http_get(CONN *C, URL *U)
 
   now = time(NULL);
 
+  memset(hoststr, 0, sizeof hoststr);
   memset(cookie,  0, sizeof cookie);
   memset(request, 0, sizeof request);
   memset(portstr, 0, sizeof portstr);
@@ -157,13 +159,18 @@ http_get(CONN *C, URL *U)
     }
   }
 
+  /* Only send the Host header if one wasn't provided. */
+  if(strncasestr(my.extra, "host:", sizeof(my.extra)) == NULL){
+    rlen = snprintf(hoststr, sizeof(hoststr), "Host: %s%s\015\012", U->hostname, portstr);
+  }
+
   /** 
    * build a request string to pass to the server       
    */
   rlen = snprintf(
     request, sizeof( request ),
     "GET %s %s\015\012"                    /* fullpath, protocol     */
-    "Host: %s%s\015\012"                   /* U->hostname, portstr   */
+    "%s"                                   /* hoststr                */
     "%s"                                   /* authwww   or empty str */
     "%s"                                   /* authproxy or empty str */
     "%s"                                   /* cookie    or empty str */
@@ -174,7 +181,7 @@ http_get(CONN *C, URL *U)
     "User-Agent: %s\015\012"               /* my uagent   */
     "%s"                                   /* my.extra    */
     "Connection: %s\015\012\015\012",      /* keepalive   */
-    fullpath, protocol, U->hostname, portstr,
+    fullpath, protocol, hoststr,
     (C->auth.www==TRUE)?authwww:"",
     (C->auth.proxy==TRUE)?authpxy:"",
     (strlen(cookie) > 8)?cookie:"", 
@@ -206,6 +213,7 @@ int
 http_post(CONN *C, URL *U)
 {
   int  rlen;
+  char hoststr[128];
   char authwww[128];
   char authpxy[128]; 
   char request[REQBUF+POSTBUF]; 
@@ -215,6 +223,7 @@ http_post(CONN *C, URL *U)
   char cookie[MAX_COOKIE_SIZE];
   char fullpath[4096];
 
+  memset(hoststr, 0, sizeof(hoststr));
   memset(cookie,  0, sizeof(cookie));
   memset(request, 0, sizeof(request));
   memset(portstr, 0, sizeof portstr);
@@ -262,12 +271,17 @@ http_post(CONN *C, URL *U)
     }
   }
 
+  /* Only send the Host header if one wasn't provided. */
+  if(strncasestr(my.extra, "host:", sizeof(my.extra)) == NULL){
+    rlen = snprintf(hoststr, sizeof(hoststr), "Host: %s%s\015\012", U->hostname, portstr);
+  }
+
   /* build a request string to
      pass to the server       */
   rlen = snprintf(
     request, sizeof(request),
     "POST %s %s\015\012"
-    "Host: %s%s\015\012"
+    "%s"
     "%s"
     "%s"
     "%s"
@@ -277,7 +291,7 @@ http_post(CONN *C, URL *U)
     "Connection: %s\015\012"
     "Content-type: %s\015\012"
     "Content-length: %ld\015\012\015\012",
-    fullpath, protocol, U->hostname, portstr,
+    fullpath, protocol, hoststr,
     (C->auth.www==TRUE)?authwww:"",
     (C->auth.proxy==TRUE)?authpxy:"",
     (strlen(cookie) > 8)?cookie:"", 

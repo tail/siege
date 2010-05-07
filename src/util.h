@@ -34,6 +34,12 @@ BOOLEAN strmatch(char *str1, char *str2);
 void    debug(const char *fmt, ...);
 char    *uppercase(char *s, size_t len);
 char    *lowercase(char *s, size_t len);
+#ifndef strnlen
+size_t  strnlen(const char *str, size_t len);
+#endif
+#ifndef strncasestr
+char    *strncasestr(const char *str1, const char *str2, size_t len);
+#endif
 
 #endif /*UTIL_H*/
 
