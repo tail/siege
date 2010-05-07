@@ -112,13 +112,13 @@ start_routine(CLIENT *client)
   #endif
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &state);
 #endif/*SIGNAL_CLIENT_PLATFORM*/ 
-  if(my.login == TRUE){
-    http_request(C, add_url(my.loginurl, 0), client);
+  if (my.login == TRUE) {
+    http_request(C, add_url(array_next(my.lurl), 0), client);
   }
 
-  for( x = 0, y = 0; x < my.reps; x++, y++ ){
-    x = (( my.secs > 0 ) && (( my.reps <= 0 )||( my.reps == MAXREPS))) ? 0 : x;
-    if( my.internet == TRUE ){
+  for (x = 0, y = 0; x < my.reps; x++, y++) {
+    x = ((my.secs > 0) && ((my.reps <= 0)||(my.reps == MAXREPS))) ? 0 : x;
+    if (my.internet == TRUE) {
       y = (unsigned int) (((double)pthread_rand_np(&(client->rand_r_SEED)) /
                           ((double)RAND_MAX + 1) * my.length ) + .5); 
       y = (y >= my.length)?my.length-1:y;
@@ -129,26 +129,26 @@ start_routine(CLIENT *client)
        * with clean slate, ie. reset (delete) cookies (eg. to let a new
        * session start)
        */
-      if( y >= my.length ){
+      if (y >= my.length) {
         y = 0;
-        if( my.expire ){
+        if (my.expire) {
           delete_all_cookies(pthread_self());
         }
       }
     }
-    if(y >= my.length || y < 0){ 
+    if (y >= my.length || y < 0) { 
       printf("y out of bounds: %d >= %d", y, my.length); 
       y = 0; 
     }
 
-    if(client->U[y] != NULL && client->U[y]->hostname != NULL){
+    if (client->U[y] != NULL && client->U[y]->hostname != NULL) {
       client->auth.bids.www = 0; /* reset */
-      if((ret = http_request(C, client->U[y], client))==FALSE){
+      if ((ret = http_request(C, client->U[y], client))==FALSE) {
         increment_failures();
       }
     }
  
-    if(my.failures > 0 && my.failed >= my.failures){
+    if (my.failures > 0 && my.failed >= my.failures) {
       break;
     }
   }
@@ -160,7 +160,7 @@ start_routine(CLIENT *client)
    */
   pthread_cleanup_pop(0);
   #endif/*SIGNAL_CLIENT_PLATFORM*/ 
-  if(C->sock >= 0){
+  if (C->sock >= 0){
     C->connection.reuse = 0;    
     socket_close(C);
   }

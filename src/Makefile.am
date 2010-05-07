@@ -37,6 +37,7 @@ siege_LDADD        =   $(top_srcdir)/lib/joedog/libjoedog.la
 siege_DEPENDENCIES =   $(top_srcdir)/lib/joedog/libjoedog.la 
 
 siege_SOURCES      =   \
+array.c    array.h     \
 auth.c     auth.h      \
 base64.c   base64.h    \
 client.c   client.h    \

@@ -309,48 +309,48 @@ main(int argc, char *argv[])
   memset(&my, 0, sizeof(struct CONFIG));
 
   parse_rc_cmdline(argc, argv); 
-  if(init_config() < 0){        /* defined in init.h   */
+  if (init_config() < 0) {      /* defined in init.h   */
     exit( EXIT_FAILURE );       /* polly was a girl... */
   } 
   parse_cmdline(argc, argv);    /* defined above       */
   ds_module_check();            /* check config integ  */
   
-  if(my.get){
+  if (my.get) {
     my.cusers  = 1;
     my.reps    = 1;
     my.logging = FALSE;
     my.bench   = TRUE;
   } 
 
-  if(my.config){
+  if (my.config) {
     show_config(TRUE);    
   }
 
-  if(my.url != NULL){
+  if (my.url != NULL) {
     my.length = 1; 
   } else { 
     my.length = read_cfg_file(lines, my.file); 
   }
 
-  if(my.reps < 0){
+  if (my.reps < 0) {
     my.reps = my.length;
   }
 
-  if(my.length == 0){ 
+  if (my.length == 0) { 
     display_help();
   }
 
   /* cookie is an EXTERN, defined in setup */ 
   cookie = xcalloc(sizeof(COOKIE), 1); 
   cookie->first = NULL;
-  if((result = pthread_mutex_init( &(cookie->mutex), NULL)) !=0){
+  if ((result = pthread_mutex_init( &(cookie->mutex), NULL)) !=0) {
     NOTIFY(FATAL, "pthread_mutex_init" );
   } 
 
   /* memory allocation for threads and clients */
   urls   = xmalloc(my.length * sizeof(URL));
   client = xcalloc(my.cusers, sizeof(CLIENT));
-  if((crew = new_crew(my.cusers, my.cusers, FALSE)) == NULL){
+  if ((crew = new_crew(my.cusers, my.cusers, FALSE)) == NULL) {
     NOTIFY(FATAL, "unable to allocate memory for %d simulated browser", my.cusers);  
   }
 
@@ -359,7 +359,7 @@ main(int argc, char *argv[])
    * command line or file, and add them
    * to the urls struct.
    */
-  if(my.url != NULL){
+  if (my.url != NULL) {
     urls[0]  =  add_url(my.url, 1);          /* from command line  */
     if (urls[0] == NULL) {
       NOTIFY(FATAL, "URL is invalid or unsupported");
@@ -375,12 +375,12 @@ main(int argc, char *argv[])
    * to the user and prepare for verbose 
    * output if necessary.
    */
-  if(!my.get){
+  if (!my.get) {
     fprintf(stderr, "** "); 
     display_version(FALSE);
     fprintf(stderr, "** Preparing %d concurrent users for battle.\n", my.cusers);
     fprintf(stderr, "The server is now under siege...");
-    if(my.verbose){ fprintf(stderr, "\n"); }
+    if (my.verbose) { fprintf(stderr, "\n"); }
   }
 
   /**
@@ -416,11 +416,11 @@ main(int argc, char *argv[])
    * ctrl-C (sigterm) and the timer thread sends
    * sigterm to cease on time out.
    */
-  if((result = pthread_create(&cease, NULL, (void*)sig_handler, (void*)crew)) < 0){
+  if ((result = pthread_create(&cease, NULL, (void*)sig_handler, (void*)crew)) < 0) {
     NOTIFY(FATAL, "failed to create handler: %d\n", result);
   }
-  if(my.secs > 0){
-    if((result = pthread_create(&timer, NULL, (void*)siege_timer, (void*)cease)) < 0){
+  if (my.secs > 0) {
+    if ((result = pthread_create(&timer, NULL, (void*)siege_timer, (void*)cease)) < 0) {
       NOTIFY(FATAL, "failed to create handler: %d\n", result);
     } 
   }
@@ -430,7 +430,7 @@ main(int argc, char *argv[])
   /**
    * loop until my.cusers and create a corresponding thread...
    */  
-  for(x = 0; x < my.cusers && crew_get_shutdown(crew) != TRUE; x++){
+  for (x = 0; x < my.cusers && crew_get_shutdown(crew) != TRUE; x++) {
     client[x].id              = x; 
     client[x].bytes           = 0;
     client[x].time            = 0.0;
@@ -445,7 +445,7 @@ main(int argc, char *argv[])
     client[x].auth.type.proxy = BASIC;
     client[x].rand_r_SEED     = pthread_rand_np(&randrseed);
     result = crew_add(crew, (void*)start_routine, &(client[x]));
-    if(result == FALSE){ 
+    if (result == FALSE) { 
       my.verbose = FALSE;
       fprintf(stderr, "Unable to spawn additional threads; you may need to\n");
       fprintf(stderr, "upgrade your libraries or tune your system in order\n"); 
@@ -464,8 +464,8 @@ main(int argc, char *argv[])
    * collect all the data from all the threads that
    * were spawned by the run.
    */
-  for(x = 0; x < ((crew_get_total(crew) > my.cusers || 
-                   crew_get_total(crew)==0 ) ? my.cusers : crew_get_total(crew)); x++){
+  for (x = 0; x < ((crew_get_total(crew) > my.cusers || 
+                    crew_get_total(crew)==0 ) ? my.cusers : crew_get_total(crew)); x++) {
     data_increment_count(D, client[x].hits);
     data_increment_bytes(D, client[x].bytes);
     data_increment_total(D, client[x].time);
@@ -486,24 +486,25 @@ main(int argc, char *argv[])
    * cleanup crew
    */ 
   crew_destroy(crew);
-  for(x = 0; x < my.length; x++) {
-    if(urls[x] != NULL){
-       xfree(urls[x]->pathname);
-       xfree(urls[x]->hostname);
-       xfree(urls[x]);
-     }
-   }
-  for(x = 0; x < my.cusers; x++){
+  for (x = 0; x < my.length; x++) {
+    if (urls[x] != NULL) {
+      xfree(urls[x]->pathname);
+      xfree(urls[x]->hostname);
+      xfree(urls[x]);
+    }
+  }
+  for (x = 0; x < my.cusers; x++) {
     digest_challenge_destroy(client[x].auth.wwwchlg);
     digest_credential_destroy(client[x].auth.wwwcred);
     digest_challenge_destroy(client[x].auth.proxychlg);
     digest_credential_destroy(client[x].auth.proxycred);
   }
+  array_destroy(my.lurl);
   xfree(client);
   xfree(urls);
 
-  if(my.get){
-    if(data_get_count(D) > 0){
+  if (my.get) {
+    if (data_get_count(D) > 0) {
       exit(EXIT_SUCCESS);
     } else {
       printf("[done]\n");
@@ -516,7 +517,7 @@ main(int argc, char *argv[])
    * this does NOT affect performance stats.
    */
   pthread_usleep_np(10000);
-  if(my.verbose)
+  if (my.verbose)
     fprintf(stderr, "done.\n");
   else
     fprintf(stderr, "\b      done.\n");
@@ -524,7 +525,7 @@ main(int argc, char *argv[])
   /**
    * prepare and print statistics.
    */
-  if(my.failures > 0 && my.failed >= my.failures){
+  if (my.failures > 0 && my.failed >= my.failures) {
     fprintf(stderr, "%s aborted due to excessive socket failure; you\n", program_name);
     fprintf(stderr, "can change the failure threshold in $HOME/.%src\n", program_name);
   }
@@ -541,7 +542,7 @@ main(int argc, char *argv[])
   fprintf(stderr, "Throughput:\t\t%12.2f MB/sec\n",        data_get_throughput(D));
   fprintf(stderr, "Concurrency:\t\t%12.2f\n",              data_get_concurrency(D));
   fprintf(stderr, "Successful transactions:%12u\n",        data_get_code(D)); 
-  if(my.debug){
+  if (my.debug) {
     fprintf(stderr, "HTTP OK received:\t%12u\n",             data_get_ok200(D));
   }
   fprintf(stderr, "Failed transactions:\t%12u\n",          my.failed);
@@ -552,23 +553,23 @@ main(int argc, char *argv[])
   if(my.logging) log_transaction(D);
 
   data_destroy(D);
-  if(my.url == NULL){
-    for(x = 0; x < my.length; x++)
-       xfree(lines->line[x]);
+  if (my.url == NULL) {
+    for (x = 0; x < my.length; x++)
+      xfree(lines->line[x]);
     xfree(lines->line);
     xfree(lines);
   } else {
     xfree(lines->line);
     xfree(lines);
   }
-  if(my.auth.encode != NULL)
+  if (my.auth.encode != NULL)
     xfree(my.auth.encode);
-  if(my.proxy.hostname != NULL)
+  if (my.proxy.hostname != NULL)
     xfree(my.proxy.hostname);
-  if(my.proxy.encode != NULL)
+  if (my.proxy.encode != NULL)
     xfree(my.proxy.encode);
 
-  while(my.auth.head != NULL) {
+  while (my.auth.head != NULL) {
     struct LOGIN *current;
     current = my.auth.head;
     my.auth.head = current->next;
@@ -577,7 +578,7 @@ main(int argc, char *argv[])
     xfree(current->realm);
     xfree(current);
   }
-  while(my.proxy.head != NULL) {
+  while (my.proxy.head != NULL) {
     struct LOGIN *current;
     current = my.proxy.head;
     my.proxy.head = current->next;
@@ -589,8 +590,8 @@ main(int argc, char *argv[])
 
   pthread_mutex_destroy( &(cookie->mutex));
   /* should probably take a deeper look at cookie content to free it */
-  xfree(cookie);
-  xfree(my.url);
+  xfree (cookie);
+  xfree (my.url);
 
   exit(EXIT_SUCCESS);  
 } /* end of int main **/

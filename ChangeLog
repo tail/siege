@@ -1,12 +1,21 @@
 To email a contributor remove "DELETE" from the email address.
 (The DELETEs are necessary as this list is published online.)
 
-2009/04/30 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+2010/05/08 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA RELEASE     RELEASE_2-70b5_MAY-08-2010
+ * src/version.c          Increment: 2.70b5
+ * src/array.c            Added to distribution (circular array support)
+ * src/array.h            Added to distribution (circular array support)
+ * src/setup.h            Added ARRAY lurl - array of upto 50 login URLS
+ * src/init.c             Added parse login-url and push onto array
+ * src/client.c           Loop through login-urls 
+
+2010/04/30 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
  * SIEGE BETA RELEASE     RELEASE_2-70b4_APR-30-2010
  * include/joedog.h       wrapped *nprintf functions with ndef __CYGWIN__
  * src/version.c          Increment: 2.70b4
 
-2009/04/05 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+2010/04/05 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
  * SIEGE BETA RELEASE *   RELEASE_2-70b3_APR-28-2010
  * src/load.c             Changed detection of binary file types based
                           on file name extensions.

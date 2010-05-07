@@ -235,11 +235,11 @@ delete_all_cookies(pthread_t id)
   CNODE  *cur, *pre;
   
   pthread_mutex_lock(&(cookie->mutex));
-  for( pre=NULL, cur=cookie->first; cur != NULL; pre=cur, cur=cur->next ){
-    if(cur->threadID == id){
-      if(my.debug){ printf("Cookie deleted: %ld => %s\n",(long)id,cur->name); fflush(stdout); }
+  for (pre=NULL, cur=cookie->first; cur != NULL; pre=cur, cur=cur->next) {
+    if (cur->threadID == id) {
+      if (my.debug) { printf("Cookie deleted: %ld => %s\n",(long)id,cur->name); fflush(stdout); }
       /* delete this cookie */
-      if( cur == cookie->first ){
+      if (cur == cookie->first) {
         /* deleting the first */
         cookie->first = cur->next;
         pre = cookie->first;
@@ -289,24 +289,24 @@ get_cookie_header(pthread_t id, char *host, char *newton)
     const char *domainptr = cur->domain;
     if (*domainptr == '.') ++domainptr;
     dlen = domainptr ? strlen(domainptr) : 0;
-    if(cur->threadID == id){
-      if(!strcasecmp(domainptr, host)){
-        if(cur->expires <= now){
+    if (cur->threadID == id) {
+      if (!strcasecmp(domainptr, host)) {
+        if (cur->expires <= now) {
           delete_cookie(cur->threadID, cur->name);
           continue;
         }
-        if(strlen(oreo) > 0)
+        if (strlen(oreo) > 0)
           strncat(oreo, ";",      sizeof(oreo) - 10 - strlen(oreo));
         strncat(oreo, cur->name,  sizeof(oreo) - 10 - strlen(oreo));
         strncat(oreo, "=",        sizeof(oreo) - 10 - strlen(oreo));
         strncat(oreo, cur->value, sizeof(oreo) - 10 - strlen(oreo));
       }
-      if((dlen < hlen) && (!strcasecmp(host + (hlen - dlen), domainptr))){
-        if(cur->expires <= now){
+      if ((dlen < hlen) && (!strcasecmp(host + (hlen - dlen), domainptr))) {
+        if (cur->expires <= now) {
           delete_cookie(cur->threadID, cur->name);
           continue;
         }
-        if(strlen(oreo) > 0)
+        if (strlen(oreo) > 0)
           strncat(oreo, ";",      sizeof(oreo) - 10 - strlen(oreo));
         strncat(oreo, cur->name,  sizeof(oreo) - 10 - strlen(oreo));
         strncat(oreo, "=",        sizeof(oreo) - 10 - strlen(oreo));
@@ -314,7 +314,7 @@ get_cookie_header(pthread_t id, char *host, char *newton)
       }
     }
   }
-  if(strlen(oreo) > 0){
+  if (strlen(oreo) > 0) {
     strncpy(newton, "Cookie: ", 8);
     strncat(newton, oreo,       MAX_COOKIE_SIZE);
     strncat(newton, "\015\012", 2);

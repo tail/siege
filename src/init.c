@@ -1,7 +1,7 @@
 /**
  * Siege environment initialization.
  *
- * Copyright (C) 2000-2007 by
+ * Copyright (C) 2000-2010 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * This file is distributed as part of Siege 
  *
@@ -83,6 +83,7 @@ init_config( void )
   my.ssl_cert       = NULL;
   my.ssl_key        = NULL;
   my.ssl_ciphers    = NULL; 
+  my.lurl           = new_array(50);
 
   if((res = pthread_mutex_init(&(my.lock), NULL)) != 0)
     NOTIFY(FATAL, "unable to initiate lock");
@@ -175,7 +176,7 @@ show_config( int EXIT )
   printf( "www auth:                       " ); display_authorization( WWW ); 
   printf( "\n" );
 
-  if( EXIT ) exit(0);
+  if (EXIT) exit(0);
   else return 0;
 }
 
@@ -370,8 +371,9 @@ load_conf(char *filename)
     else if(!strncasecmp(option, "login", 5)){
       if(strmatch(option, "login-url")){  
         /* login URL */
+        // XXX: my.loginurl = stralloc(value); 
         my.login = TRUE;
-        my.loginurl = stralloc(value);
+        array_push(my.lurl, value);
       } else {
         /* user login info */
         char *usr, *pwd, *rlm, *tmpvalue;

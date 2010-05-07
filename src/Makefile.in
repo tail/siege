@@ -50,9 +50,9 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_siege_OBJECTS = auth.$(OBJEXT) base64.$(OBJEXT) client.$(OBJEXT) \
-	cookie.$(OBJEXT) cfg.$(OBJEXT) crew.$(OBJEXT) data.$(OBJEXT) \
-	date.$(OBJEXT) eval.$(OBJEXT) getopt.$(OBJEXT) \
+am_siege_OBJECTS = array.$(OBJEXT) auth.$(OBJEXT) base64.$(OBJEXT) \
+	client.$(OBJEXT) cookie.$(OBJEXT) cfg.$(OBJEXT) crew.$(OBJEXT) \
+	data.$(OBJEXT) date.$(OBJEXT) eval.$(OBJEXT) getopt.$(OBJEXT) \
 	getopt1.$(OBJEXT) handler.$(OBJEXT) hash.$(OBJEXT) \
 	http.$(OBJEXT) init.$(OBJEXT) load.$(OBJEXT) log.$(OBJEXT) \
 	main.$(OBJEXT) md5.$(OBJEXT) sock.$(OBJEXT) ssl.$(OBJEXT) \
@@ -192,6 +192,7 @@ AM_CFLAGS = $(PTHREAD_CFLAGS) $(WARN_CFLAGS) $(SSL_CFLAGS)
 siege_LDADD = $(top_srcdir)/lib/joedog/libjoedog.la
 siege_DEPENDENCIES = $(top_srcdir)/lib/joedog/libjoedog.la 
 siege_SOURCES = \
+array.c    array.h     \
 auth.c     auth.h      \
 base64.c   base64.h    \
 client.c   client.h    \
