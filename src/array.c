@@ -5,26 +5,24 @@
 #include <array.h>
 #include <joedog/joedog.h>
 
+typedef void *array;
+
 struct ARRAY_T
 {
-  int   size;
-  int   index;
-  int   length;
-  void  **data;
+  int    index;
+  int    length;
+  array  *data;
 };
 
 
 ARRAY
-new_array(int size){
+new_array(){
   ARRAY this;
 
-  if(size < 1 || size > INT_MAX) return NULL;
- 
   this = xcalloc(sizeof(*this), 1);
-  this->size   = size;
   this->index  = -1;
-  this->length = 0;
-  this->data   = xmalloc(size * sizeof(char*)); 
+  this->length =  0;
+  //this->data   = xmalloc(size * sizeof(char*)); 
   return this;
 }
 
@@ -33,7 +31,7 @@ array_destroy(ARRAY this)
 {
   int i;
 
-  for (i = 0; i < this->size; i++) {
+  for (i = 0; i < this->length; i++) {
     xfree(this->data[i]);  
   } 
   xfree(this->data);
@@ -56,11 +54,17 @@ array_push(ARRAY this, void *thing)
 void
 array_npush(ARRAY this, void *thing, size_t len) 
 {
+  array arr;
   if (thing==NULL) return;
-  if (this->length == this->size) return;
-  this->data[this->length] = xmalloc(len);
-  memset(this->data[this->length], 0, len);
-  memcpy(this->data[this->length], thing, len);
+  if (this->length == 0) {
+    this->data = xmalloc(sizeof(array));
+  } else {
+    this->data = realloc(this->data,(this->length+1)*sizeof(array)); 
+  }
+  arr = xmalloc(len+1); 
+  memset(arr, 0, len);
+  memcpy(arr, thing, len);
+  this->data[this->length] = arr;
   this->length += 1;
   return;
 }

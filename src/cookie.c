@@ -25,6 +25,7 @@
 #include <setup.h>
 #include <cookie.h>
 #include <date.h>
+#include <util.h>
 
 typedef struct 
 {
@@ -71,6 +72,8 @@ parse_cookie(char *cookiestr, PARSED_COOKIE* ck)
 
   *cookiestr++ = 0;
 
+  if (lval != NULL) debug("%s:%d accepting cookie name:  %s", __FILE__, __LINE__, lval);
+  if (rval != NULL) debug("%s:%d accepting cookie value: %s", __FILE__, __LINE__, rval);
   ck->name  = (lval != NULL) ? xstrdup(lval) : NULL;
   ck->value = (rval != NULL) ? xstrdup(rval) : NULL; 
   /* get the biggest possible positive value */
@@ -214,7 +217,7 @@ delete_cookie(pthread_t id, char *name)
           pre->next = cur->next;
         }
         res = TRUE;
-        if(my.debug){ printf("Cookie deleted: %ld => %s\n",(long)id,name); fflush(stdout); }
+        debug("%s:%d cookie deleted: %ld => %s\n",__FILE__, __LINE__, (long)id,name); 
         break;
       }
     } else {
@@ -237,7 +240,7 @@ delete_all_cookies(pthread_t id)
   pthread_mutex_lock(&(cookie->mutex));
   for (pre=NULL, cur=cookie->first; cur != NULL; pre=cur, cur=cur->next) {
     if (cur->threadID == id) {
-      if (my.debug) { printf("Cookie deleted: %ld => %s\n",(long)id,cur->name); fflush(stdout); }
+      debug("%s:%d cookie deleted: %ld => %s\n",__FILE__, __LINE__, (long)id,cur->name); 
       /* delete this cookie */
       if (cur == cookie->first) {
         /* deleting the first */

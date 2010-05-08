@@ -223,9 +223,10 @@ http_request(CONN *C, URL *U, CLIENT *client)
   C->auth.type.proxy      = client->auth.type.proxy;
   memset(C->buffer, 0, sizeof(C->buffer));
 
-  if(U->protocol == UNSUPPORTED){ 
-    if(my.verbose && !my.get){
-      printf(
+  if (U->protocol == UNSUPPORTED) { 
+    if (my.verbose && !my.get) {
+      NOTIFY ( 
+        ERROR,
         "%s %d %6.2f secs: %7d bytes ==> %s\n",
         "UNSPPRTD", 501, 0.00, 0, "PROTOCOL NOT SUPPORTED BY SIEGE" 
       );
@@ -233,7 +234,7 @@ http_request(CONN *C, URL *U, CLIENT *client)
     return FALSE;
   }
 
-  if(my.delay){
+  if (my.delay) {
     pthread_sleep_np(
      (unsigned int) (((double)pthread_rand_np(&(client->rand_r_SEED)) /
                      ((double)RAND_MAX + 1) * my.delay ) + .5) 
@@ -246,42 +247,48 @@ http_request(CONN *C, URL *U, CLIENT *client)
   start = times(&t_start);  
 
   debug( 
-    "attempting connection to %s:%d\n", 
+    "%s:%d attempting connection to %s:%d", 
+    __FILE__, __LINE__,
     (my.proxy.required==TRUE)?my.proxy.hostname:U->hostname,
     (my.proxy.required==TRUE)?my.proxy.port:U->port 
   ); 
 
-  if(!C->connection.reuse || C->connection.status == 0){
-    if(my.proxy.required){
-      debug("client.c:%d new_socket: %s:%d", __LINE__, my.proxy.hostname, my.proxy.port); 
+  if (!C->connection.reuse || C->connection.status == 0) {
+    if (my.proxy.required) {
+      debug("%s:%d creating new socket:     %s:%d", __FILE__, __LINE__, my.proxy.hostname, my.proxy.port); 
       C->sock = new_socket(C, my.proxy.hostname, my.proxy.port);
     } else {
-      debug("client.c:%d new_socket: %s:%d", __LINE__, U->hostname, U->port); 
+      debug("%s:%d creating new socket:     %s:%d", __FILE__, __LINE__, U->hostname, U->port); 
       C->sock = new_socket(C, U->hostname, U->port);
     }
   }
 
-  if(my.keepalive){
+  if (my.keepalive) {
     C->connection.reuse = TRUE;
   }
 
-  if(C->sock < 0){
+  if (C->sock < 0) {
     debug(
-      "connection failed. erro %d(%s)",errno,strerror(errno)
+      "%s:%d connection failed. error %d(%s)",__FILE__, __LINE__, errno,strerror(errno)
     ); 
     socket_close(C);
     return FALSE;
   } 
 
-  debug("%s:%d connection made: %d", __FILE__, __LINE__, C->sock); 
+  debug(
+    "%s:%d good socket connection:  %s:%d", 
+    __FILE__, __LINE__,
+    (my.proxy.required)?my.proxy.hostname:U->hostname,
+    (my.proxy.required)?my.proxy.port:U->port
+  ); 
 
-  if(C->prot == HTTPS){
-    if(my.proxy.required){
+  if (C->prot == HTTPS) {
+    if (my.proxy.required) {
       https_tunnel_request(C, U->hostname, U->port);
       https_tunnel_response(C);
     }
     C->encrypt = TRUE;
-    if(SSL_initialize(C)==FALSE){
+    if (SSL_initialize(C)==FALSE) {
       return FALSE;
     }
   }
@@ -289,14 +296,14 @@ http_request(CONN *C, URL *U, CLIENT *client)
   /**
    * write to socket with a POST or GET
    */
-  if(U->calltype == URL_POST){ 
-    if((http_post(C, U)) < 0){
+  if (U->calltype == URL_POST) { 
+    if ((http_post(C, U)) < 0) {
       C->connection.reuse = 0;
       socket_close(C);
       return FALSE;
     }
   } else { 
-    if((http_get(C, U)) < 0){
+    if ((http_get(C, U)) < 0) {
       C->connection.reuse = 0;
       socket_close(C);
       return FALSE;
@@ -305,20 +312,20 @@ http_request(CONN *C, URL *U, CLIENT *client)
   /**
    * read from socket and collect statistics.
    */
-  if((head = http_read_headers(C, U))==NULL){
+  if ((head = http_read_headers(C, U))==NULL) {
     C->connection.reuse = 0; 
     socket_close(C); 
-    debug("NULL headers: %s:%d", __FILE__, __LINE__);
+    debug("%s:%d NULL headers", __FILE__, __LINE__);
     return FALSE; 
   }
 
   bytes = http_read(C); 
 
-  if(!my.zero_ok && (bytes < 1)){ 
+  if (!my.zero_ok && (bytes < 1)) { 
     C->connection.reuse = 0; 
     socket_close(C); 
     http_free_headers(head); 
-    debug("zero bytes %s:%d", __FILE__, __LINE__);
+    debug("%s:%d zero bytes back from server", __FILE__, __LINE__);
     return FALSE; 
   } 
   stop     =  times(&t_stop); 
@@ -332,7 +339,7 @@ http_request(CONN *C, URL *U, CLIENT *client)
   client->time  += etime;
   client->code  += code;
   client->fail  += fail;
-  if(head->code == 200){
+  if (head->code == 200) {
     client->ok200++;
   }
 
@@ -342,7 +349,7 @@ http_request(CONN *C, URL *U, CLIENT *client)
   if (etime > highmark) {
     highmark = etime;
   }
-  if ( ( lowmark < 0 ) || ( etime < lowmark ) ) {
+  if ((lowmark < 0) || (etime < lowmark)) {
     lowmark = etime;
   }
   client->bigtime = highmark;
@@ -351,9 +358,9 @@ http_request(CONN *C, URL *U, CLIENT *client)
   /**
    * verbose output, print statistics to stdout
    */
-  if((my.verbose && !my.get) && (!my.debug)){
-    if(my.csv){
-      if(my.display)
+  if ((my.verbose && !my.get) && (!my.debug)) {
+    if (my.csv) {
+      if (my.display)
         printf("%s%s%4d,%s,%d,%6.2f,%7lu,%s,%d,%s\n",
         (my.mark)?my.markstr:"", (my.mark)?",":"", client->id, head->head, head->code, 
         etime, bytes, (my.fullurl)?U->url:U->pathname, U->urlid, fmtime
@@ -364,13 +371,13 @@ http_request(CONN *C, URL *U, CLIENT *client)
           etime, bytes, (my.fullurl)?U->url:U->pathname, U->urlid, fmtime
         );
     } else {
-      if(my.display)
+      if (my.display)
         printf(
           "%4d: %s %d %6.2f secs: %7lu bytes ==> %s\n", client->id,
           head->head, head->code, etime, bytes, (my.fullurl)?U->url:U->pathname
         ); 
       else
-        printf( 
+        printf ( 
           "%s %d %6.2f secs: %7lu bytes ==> %s\n", 
           head->head, head->code, etime, bytes, (my.fullurl)?U->url:U->pathname
         );
@@ -380,27 +387,27 @@ http_request(CONN *C, URL *U, CLIENT *client)
   /**
    * close the socket and free memory.
    */
-  if(!my.keepalive){
+  if (!my.keepalive) {
     socket_close(C);
   }
  
   /**
    * deal with HTTP > 300 
    */
-  switch(head->code){
+  switch (head->code) {
     URL  *redirect_url; /* URL in redirection request */
     case 301:
     case 302:
       redirect_url = (URL*)xmalloc(sizeof(URL));
-      if(my.follow && head->redirect[0]){
-        debug("parsing redirection URL %s", head->redirect);
-        if(protocol_length(head->redirect) == 0){
+      if (my.follow && head->redirect[0]) {
+        debug("%s:%d parse redirection URL %s", __FILE__, __LINE__, head->redirect);
+        if (protocol_length(head->redirect) == 0) {
           memcpy(redirect_url, U, sizeof(URL));
           redirect_url->pathname = head->redirect;
         } else {
           redirect_url = add_url(head->redirect, U->urlid);
         }
-        if((http_request(C, redirect_url, client)) == FALSE)
+        if ((http_request(C, redirect_url, client)) == FALSE)
           return FALSE;
       }
       xfree(redirect_url);
@@ -410,20 +417,20 @@ http_request(CONN *C, URL *U, CLIENT *client)
        * WWW-Authenticate challenge from the WWW server
        */
       client->auth.www = (client->auth.www==0)?1:client->auth.www;
-      if((client->auth.bids.www++) < my.bids - 1){
-        if(head->auth.type.www == DIGEST){
+      if ((client->auth.bids.www++) < my.bids - 1) {
+        if (head->auth.type.www == DIGEST) {
           client->auth.type.www = DIGEST;
-	  if(set_digest_authorization(WWW, &(client->auth.wwwchlg), &(client->auth.wwwcred), &(client->rand_r_SEED), head->auth.realm.www, head->auth.challenge.www) < 0) {
+	  if (set_digest_authorization(WWW, &(client->auth.wwwchlg), &(client->auth.wwwcred), &(client->rand_r_SEED), head->auth.realm.www, head->auth.challenge.www) < 0) {
 	    fprintf(stderr, "ERROR from set_digest_authorization\n");
 	    return FALSE;
 	  }
           break; 
         }
-        if(head->auth.type.www == BASIC){
+        if (head->auth.type.www == BASIC) {
           client->auth.type.www =  BASIC;
           set_authorization(WWW, head->auth.realm.www);
         }
-        if((http_request(C, U, client)) == FALSE){
+        if ((http_request(C, U, client)) == FALSE) {
           fprintf(stderr, "ERROR from http_request\n");
           return FALSE;
         }
@@ -434,20 +441,20 @@ http_request(CONN *C, URL *U, CLIENT *client)
        * Proxy-Authenticate challenge from the proxy server.
        */
       client->auth.proxy = (client->auth.proxy==0)?1:client->auth.proxy;
-      if((client->auth.bids.proxy++) < my.bids - 1){
-        if(head->auth.type.proxy == DIGEST){
+      if ((client->auth.bids.proxy++) < my.bids - 1) {
+        if (head->auth.type.proxy == DIGEST) {
           client->auth.type.proxy =  DIGEST;
-	  if(set_digest_authorization(PROXY, &(client->auth.proxychlg), &(client->auth.proxycred), &(client->rand_r_SEED), head->auth.realm.proxy, head->auth.challenge.proxy) < 0) {
+	  if (set_digest_authorization(PROXY, &(client->auth.proxychlg), &(client->auth.proxycred), &(client->rand_r_SEED), head->auth.realm.proxy, head->auth.challenge.proxy) < 0) {
 	    fprintf(stderr, "ERROR from set_digest_authorization\n");
 	    return FALSE;
 	  } 
           break;
         }
-        if(head->auth.type.proxy == BASIC){
+        if (head->auth.type.proxy == BASIC) {
           client->auth.type.proxy = BASIC;
           set_authorization(PROXY, head->auth.realm.proxy);
         }
-        if((http_request(C, U, client)) == FALSE)
+        if ((http_request(C, U, client)) == FALSE)
           return FALSE;
       }
       break;

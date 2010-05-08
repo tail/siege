@@ -168,18 +168,15 @@ debug(const char *fmt, ...)
 {
   char    buf[256];
   va_list ap;
- 
-  if(my.debug){ 
+
+  if(my.debug){
     va_start(ap, fmt);
     vsnprintf(buf, sizeof buf, fmt, ap);
-    puts(buf);
+    NOTIFY(DEBUG, buf);
     va_end(ap);
-    fflush(stdout);
-  } 
-
+  }
   return;
 }
- 
 
 /*-
  * Copyright (c) 1990, 1993

@@ -6,7 +6,7 @@
  */
 typedef struct ARRAY_T *ARRAY;
 
-ARRAY  new_array(int size);
+ARRAY  new_array();
 ARRAY  array_destroy(ARRAY this);
 void   array_push(ARRAY this, void *thing);
 void   array_npush(ARRAY this, void *thing, size_t len);

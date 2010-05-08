@@ -29,9 +29,10 @@
  * Error notification
  */
 typedef enum {
-  WARNING   = 0,
-  ERROR     = 1,
-  FATAL     = 2
+  DEBUG     = 0,
+  WARNING   = 1,
+  ERROR     = 2,
+  FATAL     = 3
 } LEVEL;
 
 void OPENLOG(char *program_name);

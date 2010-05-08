@@ -327,9 +327,20 @@ spinner = true
 # client. This feature was designed to allow you to login to 
 # a server and establish a session. It will only be hit once
 # so if you need to hit this URL more then once, make sure it
-# also appears in your urls.txt file.
+# also appears in your urls.txt file. 
 #
 # ex: login-url = http://eos.haha.com/login.jsp POST name=jeff&pass=foo
+#
+# Siege versions after 2.69 support multiple logins; you can
+# configure them with multiple login-url directives. Place 
+# each one on a separate line. Siege pushes each one on a 
+# circular array and assigns each user a different login. If you
+# have more users than login-urls, then siege starts reassigning
+# ones that have already been used. 
+# 
+# ex: login-url = http://www.haha.com/login.php?name=homer&pass=whoohoo
+#     login-url = http://www.haha.com/login.php?name=marge&pass=ohhomie
+#     login-url = http://www.haha.com/login.php?name=bart&pass=eatMyShorts
 #
 # login-url = 
 

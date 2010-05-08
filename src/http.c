@@ -103,7 +103,7 @@ http_get(CONN *C, URL *U)
   char hoststr[512];
   char authwww[512];
   char authpxy[512];
-  char request[REQBUF];  
+  char request[REQBUF+MAX_COOKIE_SIZE+8];  
   char portstr[16];
   char fullpath[4096];
   char cookie[MAX_COOKIE_SIZE+8];
@@ -216,7 +216,7 @@ http_post(CONN *C, URL *U)
   char hoststr[128];
   char authwww[128];
   char authpxy[128]; 
-  char request[REQBUF+POSTBUF]; 
+  char request[REQBUF+POSTBUF+MAX_COOKIE_SIZE+8]; 
   char portstr[16];
   char *protocol; 
   char *keepalive;

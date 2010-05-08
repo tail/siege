@@ -36,6 +36,23 @@
 
 #define BUFSIZE 4096
 
+#define RESET      0
+#define BRIGHT     1
+#define DIM        2
+#define UNDERLINE  3
+#define BLINK      4
+#define REVERSE    7
+#define HIDDEN     8
+
+#define BLACK      0
+#define RED        1
+#define GREEN      2
+#define YELLOW     3
+#define BLUE       4
+#define MAGENTA    5
+#define CYAN       6
+#define WHITE      7
+
 typedef enum {
   __LOG = 1,
   __OUT = 2,
@@ -63,37 +80,46 @@ __message(METHOD M, LEVEL L, const char *fmt, va_list ap)
   char   buf[BUFSIZE/2];
   char   msg[BUFSIZE];
   LEVEL  level = WARNING;
-  char   mode[16];
-  memset(mode, '\0', 16);
-
+  char   pmode[64];
+  char   lmode[64];
+  memset(lmode, '\0', 64);
+  memset(pmode, '\0', 64);
 
   vsprintf(buf, fmt, ap);
-  if(errno == 0 || errno == ENOSYS){
+  if(errno == 0 || errno == ENOSYS || L == DEBUG){
     snprintf(msg, sizeof msg, "%s\n", buf);
   } else {
     snprintf(msg, sizeof msg, "%s: %s\n", buf, strerror(errno));
   }
 
   switch(L){
+    case DEBUG:
+      sprintf(pmode, "[%c[%d;%dmdebug%c[%dm]", 0x1B, BRIGHT, BLUE+30, 0x1B, RESET);
+      strcpy(lmode, "[debug]");
+      level = LOG_WARNING;
+      break;
     case WARNING:
-      strcpy(mode, "[warning]");
+      sprintf(pmode, "[%c[%d;%dmalert%c[%dm]", 0x1B, BRIGHT, GREEN+30, 0x1B, RESET);
+      strcpy(lmode, "[alert] ");
       level = LOG_WARNING;
       break;
     case ERROR:
-      strcpy(mode, "[error]  ");
+      sprintf(pmode, "[%c[%d;%dmerror%c[%dm]", 0x1B, BRIGHT, YELLOW+30, 0x1B, RESET);
+      strcpy(lmode, "[error]");
       level = LOG_ERR;
       break;
     case FATAL:
-      strcpy(mode, "[fatal]  ");
+      sprintf(pmode, "[%c[%d;%dmfatal%c[%dm]", 0x1B, BRIGHT, RED+30, 0x1B, RESET);
+      strcpy(lmode, "[fatal]");
       level = LOG_CRIT;
       break;
   }
   
   if(M == __LOG){
-    syslog(level, "%s %s", mode, msg);
+    syslog(level, "%s %s", lmode, msg);
   } else {
     fflush(stdout);
-    fprintf(stderr, "%s %s", mode, msg);
+    fprintf(stderr, "%s %s", pmode, msg);
   }
   if(L==FATAL){ exit(1); }
   return;

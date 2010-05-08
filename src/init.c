@@ -83,7 +83,7 @@ init_config( void )
   my.ssl_cert       = NULL;
   my.ssl_key        = NULL;
   my.ssl_ciphers    = NULL; 
-  my.lurl           = new_array(50);
+  my.lurl           = new_array();
 
   if((res = pthread_mutex_init(&(my.lock), NULL)) != 0)
     NOTIFY(FATAL, "unable to initiate lock");

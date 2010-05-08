@@ -2,6 +2,14 @@ To email a contributor remove "DELETE" from the email address.
 (The DELETEs are necessary as this list is published online.)
 
 2010/05/08 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
+ * SIEGE BETA RELEASE     RELEASE_2-70b6_MAY-08-2010
+ * lib/notify.c           Added color codings for each level
+ * lib/notify.h           Added DEBUG option 
+ * include/joedog.h       ADDED DEBUG option
+ * src/array.c            Improved memory management
+ * src/array.h            Removed size parameter
+
+2010/05/08 Jeffrey Fulmer <http://www.joedog.org/JoeDog/Contact>
  * SIEGE BETA RELEASE     RELEASE_2-70b5_MAY-08-2010
  * src/version.c          Increment: 2.70b5
  * src/array.c            Added to distribution (circular array support)
