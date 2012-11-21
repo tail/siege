@@ -80,7 +80,7 @@ parse_cookie(char *cookiestr, PARSED_COOKIE* ck)
   ck->expires = 0;
   ck->expires = ~ck->expires;
   if(ck->expires < 0){
-    ck->expires = ~(1 << ((sizeof(ck->expires) * 8) - 1));
+    ck->expires = ~0UL >> 1;
   }
   if(ck->expires < 0){
     ck->expires = (ck->expires >> 1) * -1;
@@ -101,7 +101,8 @@ parse_cookie(char *cookiestr, PARSED_COOKIE* ck)
     if (!*cookiestr) break;
 
     lval = cookiestr;
-    while( *cookiestr && *cookiestr != '=' )
+    // httponly; can cause you to miss the path that follows it
+    while( *cookiestr && *cookiestr != '=' && *cookiestr != ';')
       cookiestr++;
 
     if(!strcasecmp (lval, "secure")){
@@ -110,7 +111,8 @@ parse_cookie(char *cookiestr, PARSED_COOKIE* ck)
     } else {
       if (!*cookiestr) return; 
 
-      *cookiestr++ = 0;
+      if(*cookiestr != ';')    // httponly; can cause you to miss the path that follows it
+	*cookiestr++ = 0;
 
       rval = cookiestr;
       while(*cookiestr && *cookiestr != ';')
@@ -183,9 +185,9 @@ add_cookie(pthread_t id, char *host, char *cookiestr)
     else
       fresh->domain = xstrdup(ck.domain);
     fresh->next = cur;
-    if(cur==cookie->first)
+    if(cur==cookie->first) {
       cookie->first = fresh;
-    else
+    } else
       pre->next = fresh;    
   }
   if(name  != NULL) xfree(name);
