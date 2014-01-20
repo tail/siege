@@ -1,5 +1,5 @@
 # Updated by Siege %_VERSION%, %_DATE%
-# Copyright 2000-2007 by %_AUTHOR%
+# Copyright 2000-2013 by %_AUTHOR%
 # 
 # Siege configuration file -- edit as necessary
 # For more information about configuring and running
@@ -16,10 +16,39 @@
 # logfile = $(HOME)/var/siege.log
 
 #
+# Verbose mode
+#
 # Signify verbose mode, true turns on verbose output
 # ex: verbose = true|false
 #
 verbose = true
+
+#
+# Quiet mode
+#
+# When true, this turns off verbose and standard output.
+# You'll still see the opening announcement and the final
+# stats if you're running a siege but -g/--get will be
+# extremely quiet. This was added primarily for scripting
+# ex: quiet = true|false
+#
+quiet = false
+
+#
+# Get method - select an HTTP method to use when siege 
+# is set to get mode, siege -g/--get URL. You may select
+# GET or HEAD.  The default method is HEAD. As expected
+# HEAD prints just the headers and GET prints the entire 
+# page. 
+#
+# NOTE: This only applies when siege is invoked with
+# -g/--get.  All other requests methods will be made
+# on the basis of the URL. 
+# 
+# example: gmethod = GET
+# 
+gmethod = HEAD
+
 
 #
 # CSV Verbose format: with this option, you can choose 
@@ -30,6 +59,15 @@ verbose = true
 # ex: csv = true|false (default false)
 #
 # csv = true
+
+#
+# Timestamp format: with this option, you can choose to
+# print a timestamp each line of output
+# example: timestamp = true|false (default false)
+#
+# sample: [Sat, 2010-11-20 10:39:13] HTTP/1.1 200   0.12 secs:    4003 bytes ==> / 
+# 
+# timestamp = true
 
 #
 # Full URL verbose format: By default siege displays
@@ -161,6 +199,11 @@ concurrent = 15
 # used, this option overrides the urls.txt (-f FILE/--file=FILE)
 # option. You will HAVE to comment this out for in order to use
 # the urls.txt file option.
+#
+# NOTE: you may do the same thing by passing a URL to siege at 
+# the command line: siege -c10 -r10 "www.joedog.org/"
+# Generally, it's a good idea to wrap a command line URL in quotes
+#
 # ex: url = https://shemp.whoohoo.com/docs/index.jsp
 #
 # url =
@@ -188,6 +231,15 @@ delay = 1
 # ex: expire-session = true
 #
 # expire-session = 
+
+#
+# Cookie support: by default siege accepts cookies. This directive
+# is available to disable that support. Set cookies to 'false' to
+# refuse cookies. Set it to 'true' to accept them. The default value 
+# is true.
+# ex: cookies = false
+#
+# cookies = 
 
 #
 # Failures: This is the number of total connection failures allowed
@@ -226,6 +278,7 @@ benchmark = false
 # to make it more interesting :-)  Since Limey is recovering
 # from minor surgery as I write this, I'll dedicate the 
 # example to him...
+#
 # ex: user-agent = Limey The Bulldog
 # 
 # user-agent =
@@ -240,6 +293,19 @@ benchmark = false
 #     accept-encoding = gzip
 #     accept-encoding = compress;q=0.5;gzip;q=1
 accept-encoding = gzip
+
+#
+# URL escaping was added in version 3.0.3. You may use this
+# directive to turn off this experimental feature. By default
+# this feature is active by default starting with v3.0.3
+#
+# http://www.joedog.org/jukebox.php?band=the days of new
+# becomes:
+# http://www.joedog.org/jukebox.php?band=the%20days%20of%20the%20new 
+#
+# ex: url-escaping = false
+#
+url-escaping = true
 
 #
 # TURN OFF THAT ANNOYING SPINNER!
@@ -267,16 +333,55 @@ spinner = true
 # login = 
 
 #
-# WWW-Authenticate username and password.  When siege
-# hits a webpage that requires authentication, it will
-# send this user name and password to the server.  Note
-# this is NOT form based authentication.  You will have
-# to construct URLs for that.
-# ex: username = jdfulmer
-#     password = whoohoo
+# Login URL. This is the first URL to be hit by every siege
+# client. This feature was designed to allow you to login to 
+# a server and establish a session. It will only be hit once
+# so if you need to hit this URL more then once, make sure it
+# also appears in your urls.txt file. 
 #
-# username = 
-# password =
+# ex: login-url = http://eos.haha.com/login.jsp POST name=jeff&pass=foo
+#
+# Siege versions after 2.69 support multi logins; you can configure 
+# them with multiple login-url directives. Place each one on a separate 
+# line. Siege loops through each login then starts again at the beginning 
+# after it uses the last one. If you have more users than login-urls, then 
+# siege starts reassigning ones that have already been used. 
+# 
+# ex: login-url = http://www.haha.com/login.php?name=homer&pass=whoohoo
+#     login-url = http://www.haha.com/login.php?name=marge&pass=ohhomie
+#     login-url = http://www.haha.com/login.php?name=bart&pass=eatMyShorts
+#
+# login-url = 
+
+#
+# FTP login - This directive provides one of two ways 
+# to login to an ftp server. You may also set credentials 
+# in RFC-1738 format: ftp://user:pass@host.com/ink.jpg
+#
+# The format is USER:PASS:HOST separated by colon ':'
+# The host field is optional. If you don't set a host,
+# then siege will send the same user:pass to every FTP
+# server. You may use this directive MULTIPLE times. 
+# Siege will store each instance in memory and send the
+# appropriate credentials at login time depending on the
+# hostname in the URL.
+#
+# ex: ftp-login: jdfulmer:whoohoo:ftp.joedog.org
+#     ftp-login: jdfulmer:password
+#
+# ftp-login = 
+
+# 
+# FTP unique - This directive determines whether siege 
+# will upload files with the same name (and therefore 
+# overwrite whatever is on disk) or upload files each with a
+# unique name. If true, siege will rewrite the file name with 
+# a timestamp in its name, i.e., p.jpg => p-3086060432.jpg
+# The default value is true.
+#
+# ex: unique = false
+# 
+unique = true
 
 #
 # ssl-cert
@@ -321,39 +426,6 @@ spinner = true
 # ex: ssl-ciphers = EXP-RC4-MD5
 #
 # ssl-ciphers = 
-
-#
-# Login URL. This is the first URL to be hit by every siege
-# client. This feature was designed to allow you to login to 
-# a server and establish a session. It will only be hit once
-# so if you need to hit this URL more then once, make sure it
-# also appears in your urls.txt file. 
-#
-# ex: login-url = http://eos.haha.com/login.jsp POST name=jeff&pass=foo
-#
-# Siege versions after 2.69 support multiple logins; you can
-# configure them with multiple login-url directives. Place 
-# each one on a separate line. Siege pushes each one on a 
-# circular array and assigns each user a different login. If you
-# have more users than login-urls, then siege starts reassigning
-# ones that have already been used. 
-# 
-# ex: login-url = http://www.haha.com/login.php?name=homer&pass=whoohoo
-#     login-url = http://www.haha.com/login.php?name=marge&pass=ohhomie
-#     login-url = http://www.haha.com/login.php?name=bart&pass=eatMyShorts
-#
-# login-url = 
-
-#
-# Proxy protocol. This option allows you to select a proxy
-# server stress testing. The proxy will request the URL(s) 
-# specified by -u"my.url.org" OR from the urls.txt file.
-# 
-# ex: proxy-host = proxy.whoohoo.org
-#     proxy-port = 8080
-#
-# proxy-host = 
-# proxy-port = 
 
 #
 # Proxy-Authenticate. When scout hits a proxy server which

@@ -1,7 +1,7 @@
 /**
  * Load Post Data
  *
- * Copyright (C) 2002-2010 by
+ * Copyright (C) 2002-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * This file is distributed as part of Siege
  *
@@ -15,9 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * --
  *
  */ 
@@ -96,6 +96,7 @@ static const struct ContentType tmap[] = {
   {"jpeg",    FALSE, "image/jpeg"},
   {"jpg",     FALSE, "image/jpeg"},
   {"js",      FALSE, "application/x-javascript"},
+  {"json",    FALSE, "application/json"},
   {"kar",     FALSE, "audio/midi"},
   {"latex",   FALSE, "application/x-latex"},
   {"lha",     FALSE, "application/octet-stream"},
@@ -239,8 +240,71 @@ is_ascii(char *file)
  * maps a file to our address space 
  * and returns it the calling function.
  */
+void
+load_file(URL U, char *file)
+{
+  FILE     *fp;
+  size_t   len;
+  char     *buf;
+  char     *filename;
+  char     mode[8];
+
+  filename = trim(file);
+
+  memset(mode, '\0', sizeof(mode));
+  snprintf(mode, sizeof(mode), "%s", (is_ascii(filename))?"r":"rb");
+  fp = fopen(filename, mode);
+  if (! fp) {
+    NOTIFY(ERROR, "unable to open file: %s", filename );
+    return;
+  }
+ 
+  fseek(fp, 0, SEEK_END);
+  len = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+  buf = (char *)xmalloc(len+1);
+
+  if ((fread(buf, 1, len, fp )) == len) {
+    if (is_ascii(filename)) {
+      trim(buf);
+      len = strlen(buf);
+    }
+  } else {
+    NOTIFY(ERROR, "unable to read file: %s", filename );
+  }
+  fclose(fp); 
+
+  if (len > 0) {
+    url_set_conttype(U, get_content_type(filename));
+    url_set_postdata(U, buf, len);
+  } 
+
+  xfree(buf);
+  return;
+}
+
+void
+write_file(URL U, char *buf, size_t len)
+{
+  FILE *fp;
+  char  mode[8];
+
+  memset(mode, '\0', sizeof(mode));
+  snprintf(mode, sizeof(mode), "%s", (url_get_file(U))?"w":"wb");
+  fp = fopen(url_get_file(U), mode);
+
+  if (fp) {
+    fwrite(buf, len, 1, fp);
+  } else {
+    NOTIFY(ERROR, "unable to write to file");
+  }
+
+  fclose(fp);
+}
+
+#if 0
 void 
-load_file(URL *U, char *file)
+load_file(URL U, char *file)
 {
   FILE     *fp;
   size_t   len = 0;
@@ -252,12 +316,12 @@ load_file(URL *U, char *file)
   filename = trim(file);
   memset(postdata, 0, POSTBUF);
 
-  if((lstat(filename, &st) == 0) || (errno != ENOENT)){ 
+  if ((lstat(filename, &st) == 0) || (errno != ENOENT)) { 
     len = (st.st_size >= POSTBUF) ? POSTBUF : st.st_size;  
-    if(len < (unsigned)st.st_size){
+    if (len < (unsigned)st.st_size) {
       NOTIFY(WARNING, "Truncated file: %s exceeds the post limit of %d bytes.\n", filename, POSTBUF);
     }
-    if((fp = fopen(filename, "r")) == NULL){
+    if ((fp = fopen(filename, "r")) == NULL) {
       NOTIFY(ERROR, "could not open file: %s", filename);
       return;
     }
@@ -274,16 +338,13 @@ load_file(URL *U, char *file)
     fclose(fp);
   }
 
-  if(strlen(postdata) > 0){
-    U->conttype = xstrdup(get_content_type(filename));
-    U->postlen  = postlen; //strlen(postdata);
-    U->postdata = malloc(U->postlen);
-    memcpy(U->postdata, postdata, U->postlen);
-    U->postdata[U->postlen] = 0;
+  if (strlen(postdata) > 0) {
+    url_set_conttype(U, get_content_type(filename));
+    url_set_postdata(U, postdata, postlen);
   } 
   return;
 }
-
+#endif
 
 
 

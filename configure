@@ -7464,10 +7464,10 @@ if test -n "$lt_prog_compiler_pic"; then
 
 echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic works" >&5
 echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic works... $ECHO_C" >&6
-if test "${lt_prog_compiler_pic_works+set}" = set; then
+if test "${lt_cv_prog_compiler_pic_works+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_pic_works=no
+  lt_cv_prog_compiler_pic_works=no
   ac_outfile=conftest.$ac_objext
    printf "$lt_simple_compile_test_code" > conftest.$ac_ext
    lt_compiler_flag="$lt_prog_compiler_pic -DPIC"
@@ -7491,16 +7491,16 @@ else
      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
-       lt_prog_compiler_pic_works=yes
+       lt_cv_prog_compiler_pic_works=yes
      fi
    fi
    $rm conftest*
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works" >&5
-echo "${ECHO_T}$lt_prog_compiler_pic_works" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works" >&6
 
-if test x"$lt_prog_compiler_pic_works" = xyes; then
+if test x"$lt_cv_prog_compiler_pic_works" = xyes; then
     case $lt_prog_compiler_pic in
      "" | " "*) ;;
      *) lt_prog_compiler_pic=" $lt_prog_compiler_pic" ;;
@@ -7527,10 +7527,10 @@ esac
 wl=$lt_prog_compiler_wl eval lt_tmp_static_flag=\"$lt_prog_compiler_static\"
 echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
 echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6
-if test "${lt_prog_compiler_static_works+set}" = set; then
+if test "${lt_cv_prog_compiler_static_works+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_static_works=no
+  lt_cv_prog_compiler_static_works=no
    save_LDFLAGS="$LDFLAGS"
    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
    printf "$lt_simple_link_test_code" > conftest.$ac_ext
@@ -7543,20 +7543,20 @@ else
        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
        if diff conftest.exp conftest.er2 >/dev/null; then
-         lt_prog_compiler_static_works=yes
+         lt_cv_prog_compiler_static_works=yes
        fi
      else
-       lt_prog_compiler_static_works=yes
+       lt_cv_prog_compiler_static_works=yes
      fi
    fi
    $rm conftest*
    LDFLAGS="$save_LDFLAGS"
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works" >&5
-echo "${ECHO_T}$lt_prog_compiler_static_works" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_static_works" >&6
 
-if test x"$lt_prog_compiler_static_works" = xyes; then
+if test x"$lt_cv_prog_compiler_static_works" = xyes; then
     :
 else
     lt_prog_compiler_static=
@@ -12381,10 +12381,10 @@ if test -n "$lt_prog_compiler_pic_CXX"; then
 
 echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_CXX works" >&5
 echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_CXX works... $ECHO_C" >&6
-if test "${lt_prog_compiler_pic_works_CXX+set}" = set; then
+if test "${lt_cv_prog_compiler_pic_works_CXX+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_pic_works_CXX=no
+  lt_cv_prog_compiler_pic_works_CXX=no
   ac_outfile=conftest.$ac_objext
    printf "$lt_simple_compile_test_code" > conftest.$ac_ext
    lt_compiler_flag="$lt_prog_compiler_pic_CXX -DPIC"
@@ -12408,16 +12408,16 @@ else
      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
-       lt_prog_compiler_pic_works_CXX=yes
+       lt_cv_prog_compiler_pic_works_CXX=yes
      fi
    fi
    $rm conftest*
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_CXX" >&5
-echo "${ECHO_T}$lt_prog_compiler_pic_works_CXX" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works_CXX" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works_CXX" >&6
 
-if test x"$lt_prog_compiler_pic_works_CXX" = xyes; then
+if test x"$lt_cv_prog_compiler_pic_works_CXX" = xyes; then
     case $lt_prog_compiler_pic_CXX in
      "" | " "*) ;;
      *) lt_prog_compiler_pic_CXX=" $lt_prog_compiler_pic_CXX" ;;
@@ -12444,10 +12444,10 @@ esac
 wl=$lt_prog_compiler_wl_CXX eval lt_tmp_static_flag=\"$lt_prog_compiler_static_CXX\"
 echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
 echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6
-if test "${lt_prog_compiler_static_works_CXX+set}" = set; then
+if test "${lt_cv_prog_compiler_static_works_CXX+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_static_works_CXX=no
+  lt_cv_prog_compiler_static_works_CXX=no
    save_LDFLAGS="$LDFLAGS"
    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
    printf "$lt_simple_link_test_code" > conftest.$ac_ext
@@ -12460,20 +12460,20 @@ else
        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
        if diff conftest.exp conftest.er2 >/dev/null; then
-         lt_prog_compiler_static_works_CXX=yes
+         lt_cv_prog_compiler_static_works_CXX=yes
        fi
      else
-       lt_prog_compiler_static_works_CXX=yes
+       lt_cv_prog_compiler_static_works_CXX=yes
      fi
    fi
    $rm conftest*
    LDFLAGS="$save_LDFLAGS"
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works_CXX" >&5
-echo "${ECHO_T}$lt_prog_compiler_static_works_CXX" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works_CXX" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_static_works_CXX" >&6
 
-if test x"$lt_prog_compiler_static_works_CXX" = xyes; then
+if test x"$lt_cv_prog_compiler_static_works_CXX" = xyes; then
     :
 else
     lt_prog_compiler_static_CXX=
@@ -14079,10 +14079,10 @@ if test -n "$lt_prog_compiler_pic_F77"; then
 
 echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_F77 works" >&5
 echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_F77 works... $ECHO_C" >&6
-if test "${lt_prog_compiler_pic_works_F77+set}" = set; then
+if test "${lt_cv_prog_compiler_pic_works_F77+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_pic_works_F77=no
+  lt_cv_prog_compiler_pic_works_F77=no
   ac_outfile=conftest.$ac_objext
    printf "$lt_simple_compile_test_code" > conftest.$ac_ext
    lt_compiler_flag="$lt_prog_compiler_pic_F77"
@@ -14106,16 +14106,16 @@ else
      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
-       lt_prog_compiler_pic_works_F77=yes
+       lt_cv_prog_compiler_pic_works_F77=yes
      fi
    fi
    $rm conftest*
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_F77" >&5
-echo "${ECHO_T}$lt_prog_compiler_pic_works_F77" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works_F77" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works_F77" >&6
 
-if test x"$lt_prog_compiler_pic_works_F77" = xyes; then
+if test x"$lt_cv_prog_compiler_pic_works_F77" = xyes; then
     case $lt_prog_compiler_pic_F77 in
      "" | " "*) ;;
      *) lt_prog_compiler_pic_F77=" $lt_prog_compiler_pic_F77" ;;
@@ -14142,10 +14142,10 @@ esac
 wl=$lt_prog_compiler_wl_F77 eval lt_tmp_static_flag=\"$lt_prog_compiler_static_F77\"
 echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
 echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6
-if test "${lt_prog_compiler_static_works_F77+set}" = set; then
+if test "${lt_cv_prog_compiler_static_works_F77+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_static_works_F77=no
+  lt_cv_prog_compiler_static_works_F77=no
    save_LDFLAGS="$LDFLAGS"
    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
    printf "$lt_simple_link_test_code" > conftest.$ac_ext
@@ -14158,20 +14158,20 @@ else
        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
        if diff conftest.exp conftest.er2 >/dev/null; then
-         lt_prog_compiler_static_works_F77=yes
+         lt_cv_prog_compiler_static_works_F77=yes
        fi
      else
-       lt_prog_compiler_static_works_F77=yes
+       lt_cv_prog_compiler_static_works_F77=yes
      fi
    fi
    $rm conftest*
    LDFLAGS="$save_LDFLAGS"
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works_F77" >&5
-echo "${ECHO_T}$lt_prog_compiler_static_works_F77" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works_F77" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_static_works_F77" >&6
 
-if test x"$lt_prog_compiler_static_works_F77" = xyes; then
+if test x"$lt_cv_prog_compiler_static_works_F77" = xyes; then
     :
 else
     lt_prog_compiler_static_F77=
@@ -16682,10 +16682,10 @@ if test -n "$lt_prog_compiler_pic_GCJ"; then
 
 echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_GCJ works" >&5
 echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_GCJ works... $ECHO_C" >&6
-if test "${lt_prog_compiler_pic_works_GCJ+set}" = set; then
+if test "${lt_cv_prog_compiler_pic_works_GCJ+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_pic_works_GCJ=no
+  lt_cv_prog_compiler_pic_works_GCJ=no
   ac_outfile=conftest.$ac_objext
    printf "$lt_simple_compile_test_code" > conftest.$ac_ext
    lt_compiler_flag="$lt_prog_compiler_pic_GCJ"
@@ -16709,16 +16709,16 @@ else
      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
-       lt_prog_compiler_pic_works_GCJ=yes
+       lt_cv_prog_compiler_pic_works_GCJ=yes
      fi
    fi
    $rm conftest*
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_GCJ" >&5
-echo "${ECHO_T}$lt_prog_compiler_pic_works_GCJ" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works_GCJ" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works_GCJ" >&6
 
-if test x"$lt_prog_compiler_pic_works_GCJ" = xyes; then
+if test x"$lt_cv_prog_compiler_pic_works_GCJ" = xyes; then
     case $lt_prog_compiler_pic_GCJ in
      "" | " "*) ;;
      *) lt_prog_compiler_pic_GCJ=" $lt_prog_compiler_pic_GCJ" ;;
@@ -16745,10 +16745,10 @@ esac
 wl=$lt_prog_compiler_wl_GCJ eval lt_tmp_static_flag=\"$lt_prog_compiler_static_GCJ\"
 echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
 echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6
-if test "${lt_prog_compiler_static_works_GCJ+set}" = set; then
+if test "${lt_cv_prog_compiler_static_works_GCJ+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  lt_prog_compiler_static_works_GCJ=no
+  lt_cv_prog_compiler_static_works_GCJ=no
    save_LDFLAGS="$LDFLAGS"
    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
    printf "$lt_simple_link_test_code" > conftest.$ac_ext
@@ -16761,20 +16761,20 @@ else
        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
        if diff conftest.exp conftest.er2 >/dev/null; then
-         lt_prog_compiler_static_works_GCJ=yes
+         lt_cv_prog_compiler_static_works_GCJ=yes
        fi
      else
-       lt_prog_compiler_static_works_GCJ=yes
+       lt_cv_prog_compiler_static_works_GCJ=yes
      fi
    fi
    $rm conftest*
    LDFLAGS="$save_LDFLAGS"
 
 fi
-echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works_GCJ" >&5
-echo "${ECHO_T}$lt_prog_compiler_static_works_GCJ" >&6
+echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works_GCJ" >&5
+echo "${ECHO_T}$lt_cv_prog_compiler_static_works_GCJ" >&6
 
-if test x"$lt_prog_compiler_static_works_GCJ" = xyes; then
+if test x"$lt_cv_prog_compiler_static_works_GCJ" = xyes; then
     :
 else
     lt_prog_compiler_static_GCJ=
@@ -19747,7 +19747,7 @@ esac
 
 if test -n "$GCC"; then
   oldCFLAGS=$CFLAGS
-  CFLAGS="$CFLAGS -W -Wall -Werror"
+  CFLAGS="$CFLAGS -W -Wall -Werror -Wunused-value"
   echo "$as_me:$LINENO: checking for buggy pthread mutex initializers" >&5
 echo $ECHO_N "checking for buggy pthread mutex initializers... $ECHO_C" >&6
 
@@ -19798,13 +19798,13 @@ fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 
   if test $buggy_init = "no" ; then
-     WARN_CFLAGS="-W -Wall"
+     WARN_CFLAGS="-W -Wall -Wunused-value"
      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
   else
     echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-    WARN_CFLAGS="-W -Wall -Wno-missing-braces"
+    WARN_CFLAGS="-W -Wall -Wno-missing-braces -Wunused-value"
   fi
 fi
 CFLAGS=$oldCFLAGS
@@ -19930,6 +19930,24 @@ rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 
 
+
+echo "$as_me:$LINENO: checking for random device" >&5
+echo $ECHO_N "checking for random device... $ECHO_C" >&6
+if test "${ac_cv_have_dev_random+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -r "/dev/random" && test -r "/dev/urandom" ; then
+  ac_cv_have_dev_random=yes; else ac_cv_have_dev_random=no; fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_have_dev_random" >&5
+echo "${ECHO_T}$ac_cv_have_dev_random" >&6
+if test "$ac_cv_have_dev_random" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_DEV_RANDOM 1
+_ACEOF
+
+fi
 
 MYSSL=off
 sslfound=locate
@@ -20364,6 +20382,738 @@ _ACEOF
   fi
 fi
 
+echo "$as_me:$LINENO: checking for inline" >&5
+echo $ECHO_N "checking for inline... $ECHO_C" >&6
+if test "${ac_cv_c_inline+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_c_inline=no
+for ac_kw in inline __inline__ __inline; do
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#ifndef __cplusplus
+typedef int foo_t;
+static $ac_kw foo_t static_foo () {return 0; }
+$ac_kw foo_t foo () {return 0; }
+#endif
+
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_c_inline=$ac_kw; break
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+done
+
+fi
+echo "$as_me:$LINENO: result: $ac_cv_c_inline" >&5
+echo "${ECHO_T}$ac_cv_c_inline" >&6
+
+
+case $ac_cv_c_inline in
+  inline | yes) ;;
+  *)
+    case $ac_cv_c_inline in
+      no) ac_val=;;
+      *) ac_val=$ac_cv_c_inline;;
+    esac
+    cat >>confdefs.h <<_ACEOF
+#ifndef __cplusplus
+#define inline $ac_val
+#endif
+_ACEOF
+    ;;
+esac
+
+echo "$as_me:$LINENO: checking for int8_t" >&5
+echo $ECHO_N "checking for int8_t... $ECHO_C" >&6
+if test "${ac_cv_type_int8_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((int8_t *) 0)
+  return 0;
+if (sizeof (int8_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_int8_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_int8_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_int8_t" >&5
+echo "${ECHO_T}$ac_cv_type_int8_t" >&6
+if test $ac_cv_type_int8_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define int8_t char
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for int16_t" >&5
+echo $ECHO_N "checking for int16_t... $ECHO_C" >&6
+if test "${ac_cv_type_int16_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((int16_t *) 0)
+  return 0;
+if (sizeof (int16_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_int16_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_int16_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_int16_t" >&5
+echo "${ECHO_T}$ac_cv_type_int16_t" >&6
+if test $ac_cv_type_int16_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define int16_t short
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for int32_t" >&5
+echo $ECHO_N "checking for int32_t... $ECHO_C" >&6
+if test "${ac_cv_type_int32_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((int32_t *) 0)
+  return 0;
+if (sizeof (int32_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_int32_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_int32_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_int32_t" >&5
+echo "${ECHO_T}$ac_cv_type_int32_t" >&6
+if test $ac_cv_type_int32_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define int32_t int
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for int64_t" >&5
+echo $ECHO_N "checking for int64_t... $ECHO_C" >&6
+if test "${ac_cv_type_int64_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((int64_t *) 0)
+  return 0;
+if (sizeof (int64_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_int64_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_int64_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_int64_t" >&5
+echo "${ECHO_T}$ac_cv_type_int64_t" >&6
+if test $ac_cv_type_int64_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define int64_t long long
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for uint8_t" >&5
+echo $ECHO_N "checking for uint8_t... $ECHO_C" >&6
+if test "${ac_cv_type_uint8_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((uint8_t *) 0)
+  return 0;
+if (sizeof (uint8_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_uint8_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_uint8_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_uint8_t" >&5
+echo "${ECHO_T}$ac_cv_type_uint8_t" >&6
+if test $ac_cv_type_uint8_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define uint8_t unsigned char
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for uint16_t" >&5
+echo $ECHO_N "checking for uint16_t... $ECHO_C" >&6
+if test "${ac_cv_type_uint16_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((uint16_t *) 0)
+  return 0;
+if (sizeof (uint16_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_uint16_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_uint16_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_uint16_t" >&5
+echo "${ECHO_T}$ac_cv_type_uint16_t" >&6
+if test $ac_cv_type_uint16_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define uint16_t unsigned short
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for uint32_t" >&5
+echo $ECHO_N "checking for uint32_t... $ECHO_C" >&6
+if test "${ac_cv_type_uint32_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((uint32_t *) 0)
+  return 0;
+if (sizeof (uint32_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_uint32_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_uint32_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_uint32_t" >&5
+echo "${ECHO_T}$ac_cv_type_uint32_t" >&6
+if test $ac_cv_type_uint32_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define uint32_t unsigned int
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for uint64_t" >&5
+echo $ECHO_N "checking for uint64_t... $ECHO_C" >&6
+if test "${ac_cv_type_uint64_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((uint64_t *) 0)
+  return 0;
+if (sizeof (uint64_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_uint64_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_uint64_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_uint64_t" >&5
+echo "${ECHO_T}$ac_cv_type_uint64_t" >&6
+if test $ac_cv_type_uint64_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define uint64_t unsigned long long
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for u_int32_t" >&5
+echo $ECHO_N "checking for u_int32_t... $ECHO_C" >&6
+if test "${ac_cv_type_u_int32_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((u_int32_t *) 0)
+  return 0;
+if (sizeof (u_int32_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_u_int32_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_u_int32_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_u_int32_t" >&5
+echo "${ECHO_T}$ac_cv_type_u_int32_t" >&6
+if test $ac_cv_type_u_int32_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define u_int32_t unsigned int
+_ACEOF
+
+fi
+
+echo "$as_me:$LINENO: checking for ssize_t" >&5
+echo $ECHO_N "checking for ssize_t... $ECHO_C" >&6
+if test "${ac_cv_type_ssize_t+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+if ((ssize_t *) 0)
+  return 0;
+if (sizeof (ssize_t))
+  return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_type_ssize_t=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_type_ssize_t=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_type_ssize_t" >&5
+echo "${ECHO_T}$ac_cv_type_ssize_t" >&6
+if test $ac_cv_type_ssize_t = yes; then
+  :
+else
+
+cat >>confdefs.h <<_ACEOF
+#define ssize_t int
+_ACEOF
+
+fi
+
+
 echo "$as_me:$LINENO: checking for ANSI C header files" >&5
 echo $ECHO_N "checking for ANSI C header files... $ECHO_C" >&6
 if test "${ac_cv_header_stdc+set}" = set; then
@@ -20603,6 +21353,156 @@ fi
 
 
 for ac_header in fcntl.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+else
+  # Is the header compilable?
+echo "$as_me:$LINENO: checking $ac_header usability" >&5
+echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_header_compiler=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6
+
+# Is the header present?
+echo "$as_me:$LINENO: checking $ac_header presence" >&5
+echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <$ac_header>
+_ACEOF
+if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
+  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null; then
+  if test -s conftest.err; then
+    ac_cpp_err=$ac_c_preproc_warn_flag
+    ac_cpp_err=$ac_cpp_err$ac_c_werror_flag
+  else
+    ac_cpp_err=
+  fi
+else
+  ac_cpp_err=yes
+fi
+if test -z "$ac_cpp_err"; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+rm -f conftest.err conftest.$ac_ext
+echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
+    (
+      cat <<\_ASBOX
+## ------------------------------------------ ##
+## Report this to the AC_PACKAGE_NAME lists.  ##
+## ------------------------------------------ ##
+_ASBOX
+    ) |
+      sed "s/^/$as_me: WARNING:     /" >&2
+    ;;
+esac
+echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  eval "$as_ac_Header=\$ac_header_preproc"
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+
+fi
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+for ac_header in limits.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -25523,6 +26423,7 @@ esac
           ac_config_commands="$ac_config_commands default-1"
 
 
+echo "PLATFORM: $PLATFORM"
           ac_config_commands="$ac_config_commands default-2"
 
 
@@ -26092,7 +26993,7 @@ cat >>$CONFIG_STATUS <<_ACEOF
 #
 
 AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"
- prefix=$prefix sysconfdir=$sysconfdir localstatedir=$localstatedir
+ prefix=$prefix sysconfdir=$sysconfdir localstatedir=$localstatedir platform=$PLATFORM
  VERSION=$VERSION DATE="$DATE" PROGRAM="$PROGRAM" AUTHOR="$AUTHOR" EMAIL="$EMAIL"
  bindir=$exec_prefix$bindir sh=$SHELL
  bindir=$exec_prefix$bindir sh=$SHELL
@@ -26983,7 +27884,7 @@ done
 /**
  * Path Header
  *
- * Copyright (C) 2000-2007 by
+ * Copyright (C) 2000-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al.
  * This file is distributed as part of Siege
  *
@@ -26997,9 +27898,9 @@ done
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 #ifndef  JOEPATH_H
@@ -27009,7 +27910,7 @@ done
 #define URL_FILE       "$sysconfdir/urls.txt"
 #define CNF_FILE       "$sysconfdir/siegerc"
 #define LOG_FILE       "$localstatedir/siege.log"
-
+#define PLATFORM       "$platform"
 
 #endif/*JOEPATH_H*/
 _EOF_

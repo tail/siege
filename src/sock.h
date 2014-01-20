@@ -15,9 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #ifndef SOCK_H
 #define SOCK_H
@@ -61,6 +61,7 @@ typedef enum
 
 typedef enum
 {
+  UNDEF = 0,
   READ  = 1,
   WRITE = 2,
   RDWR  = 3
@@ -81,8 +82,8 @@ typedef struct
 {
   int      sock;       /* socket file descriptor          */
   S_STATUS status; 
-  PROTOCOL prot;       /* protocol: http/https for socks  */
   BOOLEAN  encrypt;    /* TRUE=encrypt, FALSE=clear       */
+  SCHEME   scheme;
   struct {
     TE     transfer;   /* transer encoding specified      */
     size_t length;     /* length of data chunks           */
@@ -96,13 +97,13 @@ typedef struct
     int  tested;       /* boolean, has socket been tested */
   } connection;        /* persistent connection data      */
   struct {
-    DIGEST_CHLG *wwwchlg;
-    DIGEST_CRED *wwwcred;
+    DCHLG *wchlg;
+    DCRED *wcred;
     int    www;
-    DIGEST_CHLG *proxychlg;
-    DIGEST_CRED *proxycred;
+    DCHLG *pchlg;
+    DCRED *pcred;
     int    proxy;
-    struct{
+    struct {
       TYPE www;
       TYPE proxy;
     } type;
@@ -121,6 +122,14 @@ typedef struct
   char     chkbuf[1024];
   fd_set   *ws;
   fd_set   *rs;
+  SDSET    state;  
+  struct {
+    int      code; 
+    char     host[64]; /* FTP data host */
+    int      port;     /* FTP data port */
+    size_t   size;     /* FTP file size */
+    BOOLEAN  pasv;
+  } ftp;
 } CONN; 
 
 int       new_socket     (CONN *conn, const char *hostname, int port);

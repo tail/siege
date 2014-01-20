@@ -39,7 +39,7 @@ subdir = doc
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.in
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/utils/mkinstalldirs
@@ -498,11 +498,11 @@ uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7
 
 
 install-exec-hook: 
-	@if test -f $(SIEGERC); then \
-	  if cmp -s $(srcdir)/siegerc $(SIEGERC); then echo ""; \
+	@if test -f $(DESTDIR)$(SIEGERC); then \
+	  if cmp -s $(srcdir)/siegerc $(DESTDIR)$(SIEGERC); then echo ""; \
 	    else \
-	    echo ' $(INSTALL_DATA) $(srcdir)/siegerc $(SIEGERC).new'; \
-	    $(INSTALL_DATA) $(srcdir)/siegerc $(SIEGERC).new; \
+	    echo ' $(INSTALL_DATA) $(srcdir)/siegerc $(DESTDIR)$(SIEGERC).new'; \
+	    $(INSTALL_DATA) $(srcdir)/siegerc $(DESTDIR)$(SIEGERC).new; \
 	    echo "#####################################################"; \
 	    echo "WARNING: File $(SIEGERC) already exists."; \
 	    echo "         A new resource file has been installed as"; \
@@ -512,21 +512,22 @@ install-exec-hook:
 	    echo "#####################################################"; \
 	  fi; \
 	else \
-	  $(INSTALL_DATA) $(srcdir)/siegerc $(SIEGERC); \
+	  $(mkinstalldirs) $(DESTDIR)$(sysconfdir); \
+	  $(INSTALL_DATA) $(srcdir)/siegerc $(DESTDIR)$(SIEGERC); \
 	fi 
-	@if test -f $(URLSTXT); then \
-	  if cmp -s $(srcdir)/siegerc $(URLSTXT); then echo ""; \
+	@if test -f $(DESTDIR)$(URLSTXT); then \
+	  if cmp -s $(srcdir)/siegerc $(DESTDIR)$(URLSTXT); then echo ""; \
 	    else \
-	    echo "WARNING: File $(URLSTXT) already exists."; \
+	    echo "WARNING: File $(DESTDIR)$(URLSTXT) already exists."; \
 	    echo "         It was NOT replaced with this installation."; \
 	  fi; \
 	else \
-	  $(mkinstalldirs) $(sysconfdir); \
-	  $(INSTALL_DATA) $(srcdir)/urls.txt $(URLSTXT); \
+	  $(mkinstalldirs) $(DESTDIR)$(sysconfdir); \
+	  $(INSTALL_DATA) $(srcdir)/urls.txt $(DESTDIR)$(URLSTXT); \
 	fi 
 
 uninstall:
-	rm -f $(SIEGERC)
+	rm -f $(DESTDIR)$(SIEGERC)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -1,7 +1,7 @@
 /**
  * Siege, http regression tester / benchmark utility
  *
- * Copyright (C) 2000-2010 by  
+ * Copyright (C) 2000-2013 by  
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * This file is distributed as part of Siege
  *
@@ -15,9 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 #define  INTERN  1
@@ -32,6 +32,7 @@
 
 /*LOCAL HEADERS*/
 #include <setup.h>
+#include <array.h>
 #include <handler.h>
 #include <timer.h>
 #include <client.h>
@@ -57,24 +58,27 @@
  */
 static struct option long_options[] =
 {
-  { "version",    no_argument,       NULL, 'V' },
-  { "help",       no_argument,       NULL, 'h' },
-  { "verbose",    no_argument,       NULL, 'v' },
-  { "config",     no_argument,       NULL, 'C' },
-  { "debug",      no_argument,       NULL, 'D' },
-  { "get",        no_argument,       NULL, 'g' },
-  { "concurrent", required_argument, NULL, 'c' },
-  { "internet",   no_argument,       NULL, 'i' },
-  { "benchmark",  no_argument,       NULL, 'b' },
-  { "reps",       required_argument, NULL, 'r' },
-  { "time",       required_argument, NULL, 't' },
-  { "delay",      required_argument, NULL, 'd' },
-  { "log",        optional_argument, NULL, 'l' },
-  { "file",       required_argument, NULL, 'f' },
-  { "rc",         required_argument, NULL, 'R' }, 
-  { "mark",       required_argument, NULL, 'm' },
-  { "header",     required_argument, NULL, 'H' },
-  { "user-agent", required_argument, NULL, 'A' }
+  { "version",      no_argument,       NULL, 'V' },
+  { "help",         no_argument,       NULL, 'h' },
+  { "verbose",      no_argument,       NULL, 'v' },
+  { "quiet",        no_argument,       NULL, 'q' },
+  { "config",       no_argument,       NULL, 'C' },
+  { "debug",        no_argument,       NULL, 'D' },
+  { "get",          no_argument,       NULL, 'g' },
+  { "concurrent",   required_argument, NULL, 'c' },
+  { "internet",     no_argument,       NULL, 'i' },
+  { "benchmark",    no_argument,       NULL, 'b' },
+  { "reps",         required_argument, NULL, 'r' },
+  { "time",         required_argument, NULL, 't' },
+  { "delay",        required_argument, NULL, 'd' },
+  { "log",          optional_argument, NULL, 'l' },
+  { "file",         required_argument, NULL, 'f' },
+  { "rc",           required_argument, NULL, 'R' }, 
+  { "mark",         required_argument, NULL, 'm' },
+  { "header",       required_argument, NULL, 'H' },
+  { "user-agent",   required_argument, NULL, 'A' },
+  { "content-type", required_argument, NULL, 'T' },
+  {0, 0, 0, 0} 
 };
 
 /**
@@ -124,27 +128,29 @@ display_help()
   printf("       %s [options] URL\n", program_name);
   printf("       %s -g URL\n", program_name);
   printf("Options:\n"                    );
-  puts("  -V, --version           VERSION, prints the version number.");
-  puts("  -h, --help              HELP, prints this section.");
-  puts("  -C, --config            CONFIGURATION, show the current config.");
-  puts("  -v, --verbose           VERBOSE, prints notification to screen.");
-  puts("  -g, --get               GET, pull down HTTP headers and display the");
-  puts("                          transaction. Great for application debugging.");
-  puts("  -c, --concurrent=NUM    CONCURRENT users, default is 10");
-  puts("  -i, --internet          INTERNET user simulation, hits URLs randomly." );
-  puts("  -b, --benchmark         BENCHMARK: no delays between requests." );
-  puts("  -t, --time=NUMm         TIMED testing where \"m\" is modifier S, M, or H" );
-  puts("                          ex: --time=1H, one hour test." );
-  puts("  -r, --reps=NUM          REPS, number of times to run the test." );
-  puts("  -f, --file=FILE         FILE, select a specific URLS FILE." );
-  printf("  -R, --rc=FILE           RC, specify an %src file\n",program_name);
-  puts("  -l, --log[=FILE]        LOG to FILE. If FILE is not specified, the");
-  printf("                          default is used: PREFIX/var/%s.log\n", program_name);
-  puts("  -m, --mark=\"text\"       MARK, mark the log file with a string." );
-  puts("  -d, --delay=NUM         Time DELAY, random delay before each requst");
-  puts("                          between 1 and NUM. (NOT COUNTED IN STATS)");
-  puts("  -H, --header=\"text\"     Add a header to request (can be many)" ); 
-  puts("  -A, --user-agent=\"text\" Sets User-Agent in request" ); 
+  puts("  -V, --version             VERSION, prints the version number.");
+  puts("  -h, --help                HELP, prints this section.");
+  puts("  -C, --config              CONFIGURATION, show the current config.");
+  puts("  -v, --verbose             VERBOSE, prints notification to screen.");
+  puts("  -q, --quiet               QUIET turns verbose off and suppresses output.");
+  puts("  -g, --get                 GET, pull down HTTP headers and display the");
+  puts("                            transaction. Great for application debugging.");
+  puts("  -c, --concurrent=NUM      CONCURRENT users, default is 10");
+  puts("  -i, --internet            INTERNET user simulation, hits URLs randomly." );
+  puts("  -b, --benchmark           BENCHMARK: no delays between requests." );
+  puts("  -t, --time=NUMm           TIMED testing where \"m\" is modifier S, M, or H" );
+  puts("                            ex: --time=1H, one hour test." );
+  puts("  -r, --reps=NUM            REPS, number of times to run the test." );
+  puts("  -f, --file=FILE           FILE, select a specific URLS FILE." );
+  printf("  -R, --rc=FILE             RC, specify an %src file\n",program_name);
+  puts("  -l, --log[=FILE]          LOG to FILE. If FILE is not specified, the");
+  printf("                            default is used: PREFIX/var/%s.log\n", program_name);
+  puts("  -m, --mark=\"text\"         MARK, mark the log file with a string." );
+  puts("  -d, --delay=NUM           Time DELAY, random delay before each requst");
+  puts("                            between 1 and NUM. (NOT COUNTED IN STATS)");
+  puts("  -H, --header=\"text\"       Add a header to request (can be many)" ); 
+  puts("  -A, --user-agent=\"text\"   Sets User-Agent in request" ); 
+  puts("  -T, --content-type=\"text\" Sets Content-Type in request" ); 
   puts("");
   puts(copyright);
   /**
@@ -165,7 +171,7 @@ parse_rc_cmdline(int argc, char *argv[])
   strcpy(my.rc, "");
   
   while( a > -1 ){
-    a = getopt_long(argc, argv, "VhvCDgl::ibr:t:f:d:c:m:H:R:A:", long_options, (int*)0);
+    a = getopt_long(argc, argv, "VhvqCDgl::ibr:t:f:d:c:m:H:R:A:T:", long_options, (int*)0);
     if(a == 'R'){
       strcpy(my.rc, optarg);
       a = -1;
@@ -184,9 +190,8 @@ parse_cmdline(int argc, char *argv[])
 {
   int c = 0;
   int nargs;
-  while((c = getopt_long( argc, argv, "VhvCDgl::ibr:t:f:d:c:m:H:R:A:",   
-          long_options, (int *)0)) != EOF){
-  switch(c){
+  while ((c = getopt_long(argc, argv, "VhvqCDgl::ibr:t:f:d:c:m:H:R:A:T:", long_options, (int *)0)) != EOF) {
+  switch (c) {
       case 'V':
         display_version(TRUE);
         break;
@@ -198,6 +203,7 @@ parse_cmdline(int argc, char *argv[])
         break;
       case 'C':
         my.config = TRUE;
+        my.get    = FALSE;
         break;
       case 'c':
         my.cusers  = atoi(optarg);
@@ -230,6 +236,9 @@ parse_cmdline(int argc, char *argv[])
         my.markstr = optarg;
         my.logging = TRUE; 
         break;
+      case 'q':
+        my.quiet   = TRUE;
+        break;
       case 'v':
         my.verbose = TRUE;
         break;
@@ -251,6 +260,9 @@ parse_cmdline(int argc, char *argv[])
       case 'A':
         strncpy(my.uagent, optarg, 255);
         break;
+      case 'T':
+        strncpy(my.conttype, optarg, 255);
+        break;
       case 'R':  
         /**
          * processed above 
@@ -259,7 +271,7 @@ parse_cmdline(int argc, char *argv[])
       case 'H':
         {
           if(!strchr(optarg,':')) NOTIFY(FATAL, "no ':' in http-header");
-          if((strlen(optarg) + strlen(my.extra) + 3) > 512)
+          if((strlen(optarg) + strlen(my.extra) + 3) > 2048)
               NOTIFY(FATAL, "header is too large");
           strcat(my.extra,optarg);
           strcat(my.extra,"\015\012");
@@ -269,9 +281,9 @@ parse_cmdline(int argc, char *argv[])
     } /* end of switch( c )           */
   }   /* end of while c = getopt_long */
   nargs = argc - optind;
-  if(nargs)
+  if (nargs)
     my.url = xstrdup(argv[argc-1]); 
-  if(my.get && my.url==NULL){
+  if (my.get && my.url==NULL) {
     puts("ERROR: -g/--get requires a commandline URL");
     exit(1);
   }
@@ -283,15 +295,14 @@ main(int argc, char *argv[])
 {
   int            x; 
   int            result;
-  DATA           D = new_data();
-  CREW           crew;           /* thread pool - crew.h */
-  LINES          *lines;         /* defined in setup.h   */
-  CLIENT         *client;        /* defined in setup.h   */
-  URL            **urls;         /* urls struct array    */
-  pthread_t      cease;          /* the shutdown thread  */
-  pthread_t      timer;          /* the timer thread     */
-  pthread_attr_t scope_attr;     /* set to PTHREAD_SCOPE_SYSTEM */
-  unsigned int   randrseed;      /* seed pthread_rand_np */
+  DATA           D    = new_data();
+  ARRAY          urls = new_array();
+  CREW           crew;  
+  LINES          *lines;   
+  CLIENT         *client; 
+  pthread_t      cease; 
+  pthread_t      timer;  
+  pthread_attr_t scope_attr; 
   void *statusp;
   sigset_t sigs;
 
@@ -314,13 +325,11 @@ main(int argc, char *argv[])
   } 
   parse_cmdline(argc, argv);    /* defined above       */
   ds_module_check();            /* check config integ  */
-  
-  if (my.get) {
-    my.cusers  = 1;
-    my.reps    = 1;
-    my.logging = FALSE;
-    my.bench   = TRUE;
-  } 
+
+  /**
+   * XXX: we should consider moving the following
+   * if-checks into the ds_module_check
+   */
 
   if (my.config) {
     show_config(TRUE);    
@@ -348,7 +357,6 @@ main(int argc, char *argv[])
   } 
 
   /* memory allocation for threads and clients */
-  urls   = xmalloc(my.length * sizeof(URL));
   client = xcalloc(my.cusers, sizeof(CLIENT));
   if ((crew = new_crew(my.cusers, my.cusers, FALSE)) == NULL) {
     NOTIFY(FATAL, "unable to allocate memory for %d simulated browser", my.cusers);  
@@ -359,14 +367,19 @@ main(int argc, char *argv[])
    * command line or file, and add them
    * to the urls struct.
    */
+
   if (my.url != NULL) {
-    urls[0]  =  add_url(my.url, 1);          /* from command line  */
-    if (urls[0] == NULL) {
-      NOTIFY(FATAL, "URL is invalid or unsupported");
+    URL tmp = new_url(my.url);
+    url_set_ID(tmp, 0);
+    if (my.get && url_get_method(tmp) != POST && url_get_method(tmp) != PUT) {
+      url_set_method(tmp, my.method); 
     }
+    array_npush(urls, tmp, URLSIZE); // from cmd line
   } else { 
-    for(x = 0; x < my.length; x ++){
-      urls[x] =  add_url(lines->line[x], x); /* from urls.txt file */
+    for (x = 0; x < my.length; x++) {
+      URL tmp = new_url(lines->line[x]);
+      url_set_ID(tmp, x);
+      array_npush(urls, tmp, URLSIZE);
     }
   } 
 
@@ -375,7 +388,7 @@ main(int argc, char *argv[])
    * to the user and prepare for verbose 
    * output if necessary.
    */
-  if (!my.get) {
+  if (!my.get && !my.quiet) {
     fprintf(stderr, "** "); 
     display_version(FALSE);
     fprintf(stderr, "** Preparing %d concurrent users for battle.\n", my.cusers);
@@ -424,8 +437,6 @@ main(int argc, char *argv[])
       NOTIFY(FATAL, "failed to create handler: %d\n", result);
     } 
   }
-  
-  randrseed = time(0);
 
   /**
    * loop until my.cusers and create a corresponding thread...
@@ -438,12 +449,12 @@ main(int argc, char *argv[])
     client[x].code            = 0;
     client[x].ok200           = 0;   
     client[x].fail            = 0; 
-    client[x].U               = urls;
+    client[x].urls            = urls;
     client[x].auth.www        = 0;
     client[x].auth.proxy      = 0;
     client[x].auth.type.www   = BASIC;
     client[x].auth.type.proxy = BASIC;
-    client[x].rand_r_SEED     = pthread_rand_np(&randrseed);
+    client[x].rand_r_SEED     = urandom();
     result = crew_add(crew, (void*)start_routine, &(client[x]));
     if (result == FALSE) { 
       my.verbose = FALSE;
@@ -472,9 +483,9 @@ main(int argc, char *argv[])
     data_increment_code (D, client[x].code);
     data_increment_ok200(D, client[x].ok200);
     data_increment_fail (D, client[x].fail);
-    data_set_highest    (D, client[x].bigtime);
-    data_set_lowest     (D, client[x].smalltime);
-    client[x].rand_r_SEED = pthread_rand_np(&randrseed);
+    data_set_highest    (D, client[x].himark);
+    data_set_lowest     (D, client[x].lomark);
+    client[x].rand_r_SEED = urandom();
   } /* end of stats accumulation */
   
   /**
@@ -486,28 +497,22 @@ main(int argc, char *argv[])
    * cleanup crew
    */ 
   crew_destroy(crew);
-  for (x = 0; x < my.length; x++) {
-    if (urls[x] != NULL) {
-      xfree(urls[x]->pathname);
-      xfree(urls[x]->hostname);
-      xfree(urls[x]);
-    }
-  }
+
   for (x = 0; x < my.cusers; x++) {
-    digest_challenge_destroy(client[x].auth.wwwchlg);
-    digest_credential_destroy(client[x].auth.wwwcred);
-    digest_challenge_destroy(client[x].auth.proxychlg);
-    digest_credential_destroy(client[x].auth.proxycred);
+    // XXX: TODO
+    //digest_challenge_destroy(client[x].auth.wwwchlg);
+    //digest_credential_destroy(client[x].auth.wwwcred);
+    //digest_challenge_destroy(client[x].auth.proxychlg);
+    //digest_credential_destroy(client[x].auth.proxycred);
   }
   array_destroy(my.lurl);
   xfree(client);
-  xfree(urls);
 
   if (my.get) {
-    if (data_get_count(D) > 0) {
-      exit(EXIT_SUCCESS);
+    if (data_get_ok200(D) > 0) {
+       exit(EXIT_SUCCESS);
     } else {
-      printf("[done]\n");
+      if (!my.quiet) echo("[done]\n");
       exit(EXIT_FAILURE);
     }
   }
@@ -529,7 +534,7 @@ main(int argc, char *argv[])
     fprintf(stderr, "%s aborted due to excessive socket failure; you\n", program_name);
     fprintf(stderr, "can change the failure threshold in $HOME/.%src\n", program_name);
   }
-  fprintf(stderr, "\bTransactions:\t\t%12u hits\n",        data_get_count(D));
+  fprintf(stderr, "\nTransactions:\t\t%12u hits\n",        data_get_count(D));
   fprintf(stderr, "Availability:\t\t%12.2f %%\n",          data_get_count(D)==0 ? 0 :
                                                            (double)data_get_count(D) /
                                                            (data_get_count(D)+my.failed)
@@ -562,34 +567,14 @@ main(int argc, char *argv[])
     xfree(lines->line);
     xfree(lines);
   }
-  if (my.auth.encode != NULL)
-    xfree(my.auth.encode);
-  if (my.proxy.hostname != NULL)
-    xfree(my.proxy.hostname);
-  if (my.proxy.encode != NULL)
-    xfree(my.proxy.encode);
-
-  while (my.auth.head != NULL) {
-    struct LOGIN *current;
-    current = my.auth.head;
-    my.auth.head = current->next;
-    xfree(current->username);
-    xfree(current->password);
-    xfree(current->realm);
-    xfree(current);
-  }
-  while (my.proxy.head != NULL) {
-    struct LOGIN *current;
-    current = my.proxy.head;
-    my.proxy.head = current->next;
-    xfree(current->username);
-    xfree(current->password);
-    xfree(current->realm);
-    xfree(current);
-  }
 
   pthread_mutex_destroy( &(cookie->mutex));
-  /* should probably take a deeper look at cookie content to free it */
+
+  /** 
+   * I should probably take a deeper look 
+   * at cookie content to free it but at 
+   * this point we're two lines from exit
+   */
   xfree (cookie);
   xfree (my.url);
 

@@ -1,7 +1,7 @@
 /**
  * Variable evaluation
  *
- * Copyright (C) 2003-2007 by
+ * Copyright (C) 2003-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * This file is part of siege
  *
@@ -15,9 +15,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *--
  *
  */
 #ifdef  HAVE_CONFIG_H
@@ -62,10 +63,10 @@ evaluate(HASH hash_table, char *buf)
     scan++;
  
   string = substring(ptr, 0, x);
-  if(hash_lookup( hash_table, string) == 0){
-    if(getenv(string) != NULL)
+  if (hash_lookup(hash_table, string) == 0) {
+    if (getenv(string) != NULL) {
       ENV = 1;
-    else{
+    } else {
       string = '\0'; /* user botched his config file */
     }
   }

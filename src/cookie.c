@@ -1,7 +1,7 @@
 /**
  * Cookies Support
  *
- * Copyright (C) 2000-2009 by
+ * Copyright (C) 2000-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * Copyright (C) 2002 the University of Kansas
  * This file is distributed as part of Siege 
@@ -16,11 +16,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * --
- *
  */ 
 #include <setup.h>
 #include <cookie.h>
@@ -59,34 +58,34 @@ parse_cookie(char *cookiestr, PARSED_COOKIE* ck)
 
   lval = cookiestr;
 
-  while(*cookiestr && *cookiestr != '=')
+  while (*cookiestr && *cookiestr != '=')
     cookiestr++;
 
-  if(!*cookiestr) /*WTF?*/ return;
+  if (!*cookiestr) /*WTF?*/ return;
 
   *cookiestr++ = 0; /* NULL-terminate lval (replace '=') and position at start of rval */
 
   rval = cookiestr;
-  while(*cookiestr && *cookiestr != ';')
+  while (*cookiestr && *cookiestr != ';')
     cookiestr++;
 
   *cookiestr++ = 0;
 
-  if (lval != NULL) debug("%s:%d accepting cookie name:  %s", __FILE__, __LINE__, lval);
-  if (rval != NULL) debug("%s:%d accepting cookie value: %s", __FILE__, __LINE__, rval);
+  if (lval != NULL) debug ("%s:%d accepting cookie name:  %s", __FILE__, __LINE__, lval);
+  if (rval != NULL) debug ("%s:%d accepting cookie value: %s", __FILE__, __LINE__, rval);
   ck->name  = (lval != NULL) ? xstrdup(lval) : NULL;
   ck->value = (rval != NULL) ? xstrdup(rval) : NULL; 
   /* get the biggest possible positive value */
   ck->expires = 0;
   ck->expires = ~ck->expires;
-  if(ck->expires < 0){
-    ck->expires = ~(1 << ((sizeof(ck->expires) * 8) - 1));
+  if (ck->expires < 0){
+    ck->expires = ~0UL >> 1;
   }
-  if(ck->expires < 0){
+  if(ck->expires < 0) {
     ck->expires = (ck->expires >> 1) * -1;
   }
   
-  if(!*cookiestr){ 
+  if (!*cookiestr) { 
     /** 
      revert to defaults 
      XXX: assumes at least one key value pair
@@ -94,39 +93,37 @@ parse_cookie(char *cookiestr, PARSED_COOKIE* ck)
     return; 
   }
 
-  while(*cookiestr){
-    while(isspace((unsigned char)*cookiestr))
+  while (*cookiestr) {
+    while (isspace((unsigned char)*cookiestr))
       cookiestr++;
 
     if (!*cookiestr) break;
 
     lval = cookiestr;
-    while( *cookiestr && *cookiestr != '=' )
+    // httponly; can cause you to miss the path that follows it
+    while (*cookiestr && *cookiestr != '=' && *cookiestr != ';')
       cookiestr++;
 
-    if(!strcasecmp (lval, "secure")){
+    if (!strcasecmp (lval, "secure")) {
       ck->secure = 1;
       rval = NULL;
     } else {
       if (!*cookiestr) return; 
 
-      *cookiestr++ = 0;
+      if(*cookiestr != ';')    // httponly; can cause you to miss the path that follows it
+        *cookiestr++ = 0;
 
       rval = cookiestr;
-      while(*cookiestr && *cookiestr != ';')
+      while (*cookiestr && *cookiestr != ';')
         cookiestr++;
       *cookiestr++ = 0;
     }
 
-    if(!strcasecmp(lval, "domain")){
+    if (!strcasecmp(lval, "domain")) {
       ck->domain = (rval != NULL) ? xstrdup( rval ) : NULL; 
-    } 
-    else 
-    if(!strcasecmp (lval, "expires")){
+    } else if (!strcasecmp (lval, "expires")) {
       ck->expires = strtotime(rval);
-    }
-    else
-    if ( !strcasecmp (lval, "path")) {
+    } else if (!strcasecmp (lval, "path")) {
       ck->path = (rval != NULL) ? xstrdup( rval ) : NULL; 
     }
   }
@@ -148,11 +145,11 @@ add_cookie(pthread_t id, char *host, char *cookiestr)
   name = ck.name;
   value = ck.value;
 
-  if(( name == NULL || value == NULL )) return -1;
+  if ((name == NULL || value == NULL)) return -1;
 
   pthread_mutex_lock(&(cookie->mutex)); 
-  for(cur=pre=cookie->first; cur != NULL; pre=cur, cur=cur->next){
-    if((cur->threadID == id )&&(!strcasecmp(cur->name, name))){
+  for (cur=pre=cookie->first; cur != NULL; pre=cur, cur=cur->next) {
+    if ((cur->threadID == id )&&(!strcasecmp(cur->name, name))) {
       xfree(cur->value);
       cur->value = xstrdup(value);
       /**
@@ -171,25 +168,25 @@ add_cookie(pthread_t id, char *host, char *cookiestr)
       break;
     }
   }
-  if(!found){
+  if (!found) {
     fresh = (CNODE*)xmalloc(sizeof(CNODE));
-    if(!fresh) NOTIFY(FATAL, "out of memory!"); 
+    if (!fresh) NOTIFY(FATAL, "out of memory!"); 
     fresh->threadID = id;
     fresh->name     = xstrdup(name);
     fresh->value    = xstrdup(value);
     fresh->expires  = ck.expires; 
-    if(!ck.domain)
+    if (!ck.domain)
       fresh->domain = xstrdup(host);
     else
       fresh->domain = xstrdup(ck.domain);
     fresh->next = cur;
-    if(cur==cookie->first)
+    if (cur==cookie->first)
       cookie->first = fresh;
     else
-      pre->next = fresh;    
+      pre->next = fresh;
   }
-  if(name  != NULL) xfree(name);
-  if(value != NULL) xfree(value);
+  if (name  != NULL) xfree(name);
+  if (value != NULL) xfree(value);
 
   pthread_mutex_unlock(&(cookie->mutex));
 
@@ -202,9 +199,9 @@ delete_cookie(pthread_t id, char *name)
   CNODE  *cur, *pre;
   BOOLEAN res = FALSE;
 
-  for(cur=pre=cookie->first; cur != NULL; pre=cur, cur=cur->next){
-    if(cur->threadID == id){
-      if(!strcasecmp(cur->name, name)){
+  for (cur=pre=cookie->first; cur != NULL; pre=cur, cur=cur->next) {
+    if (cur->threadID == id) {
+      if (!strcasecmp(cur->name, name)) {
         pre->next = cur->next;
         /* ksjuse: XXX: this breaks when the cookie to remove comes first */
         /* JDF:    XXX: I believe this will fix the problem:  */
@@ -217,7 +214,7 @@ delete_cookie(pthread_t id, char *name)
           pre->next = cur->next;
         }
         res = TRUE;
-        debug("%s:%d cookie deleted: %ld => %s\n",__FILE__, __LINE__, (long)id,name); 
+        echo ("%s:%d cookie deleted: %ld => %s\n",__FILE__, __LINE__, (long)id,name); 
         break;
       }
     } else {
@@ -240,7 +237,7 @@ delete_all_cookies(pthread_t id)
   pthread_mutex_lock(&(cookie->mutex));
   for (pre=NULL, cur=cookie->first; cur != NULL; pre=cur, cur=cur->next) {
     if (cur->threadID == id) {
-      debug("%s:%d cookie deleted: %ld => %s\n",__FILE__, __LINE__, (long)id,cur->name); 
+      echo ("%s:%d cookie deleted: %ld => %s\n",__FILE__, __LINE__, (long)id,cur->name); 
       /* delete this cookie */
       if (cur == cookie->first) {
         /* deleting the first */
@@ -285,7 +282,7 @@ get_cookie_header(pthread_t id, char *host, char *newton)
   pthread_mutex_lock(&(cookie->mutex));
   now = time(NULL);
 
-  for(cur=pre=cookie->first; cur != NULL; pre=cur, cur=cur->next){
+  for (cur=pre=cookie->first; cur != NULL; pre=cur, cur=cur->next) {
     /**
      * for the purpose of matching, we'll ignore the leading '.'
      */
@@ -338,7 +335,7 @@ display_cookies()
   pthread_mutex_lock(&(cookie->mutex));
  
   printf ("Linked list contains:\n");
-  for( cur=cookie->first; cur != NULL; cur=cur->next ) {
+  for (cur=cookie->first; cur != NULL; cur=cur->next) {
     printf ("Index: %ld\tName: %s Value: %s\n", (long)cur->threadID, cur->name, cur->value);
   }
  

@@ -1,103 +1,56 @@
+/**
+ * HTTP Authentication
+ *
+ * Copyright (C) 2002-2013 by
+ * Jeffrey Fulmer - <jeff@joedog.org>, et al.
+ * This file is distributed as part of Siege
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *--
+ */
 #include <stdio.h>
 #include <stdlib.h>
-#include <auth.h>
-#include <base64.h> 
+#include <string.h>
+#include <base64.h>
 #include <md5.h>
-#include <setup.h>
+#include <auth.h>
+#include <array.h>
 #include <util.h>
-#include <joedog/joedog.h> 
+#include <pthread.h>
+#include <setup.h>
+#include <joedog/joedog.h>
 
-void
-add_authorization(SERVICE service, char *username, char *password, char *realm)
-{
-  struct LOGIN *tail = NULL;
+struct AUTH_T {
+  ARRAY   creds;
+  BOOLEAN okay;
+  struct {
+    char *encode;
+  } basic;
+  struct {
+    char *encode;
+  } digest;
+  struct {
+    BOOLEAN required;   /* boolean, TRUE == use a proxy server.    */
+    char *hostname;     /* hostname for the proxy server.          */
+    int  port;          /* port number for proxysrv                */
+    char *encode;       /* base64 encoded username and password    */
+  } proxy;
+  pthread_mutex_t lock;
+}; 
 
-  tail = (struct LOGIN*)xmalloc(sizeof(struct LOGIN));
-  tail->username = xstrdup(username);
-  tail->password = xstrdup(password);
-  tail->realm    = (realm!=NULL&&strlen(realm)>1)?xstrdup( realm ):xstrdup("all");
-  switch(service){
-  case WWW:
-    tail->next   = my.auth.head;
-    my.auth.head = tail;
-    break;
-  case PROXY:
-    tail->next   = my.proxy.head;
-    my.proxy.head= tail;
-    break;
-  default:
-    break;
-  }
-  return;
-} 
-
-int
-display_authorization(SERVICE service)
-{
-  struct LOGIN *li = (service==WWW)?my.auth.head:my.proxy.head;
-
-  while(li != NULL){
-    printf("%s:%s [%s]\n", li->username, li->password, li->realm);
-    li = li->next; 
-  }
-  return 0;
-}
-
-int
-set_authorization(SERVICE service, char *realm) 
-{
-  char buf[64];
-  struct LOGIN *li     = (service==WWW)?my.auth.head:my.proxy.head;
-  pthread_mutex_t lock = (service==WWW)?my.auth.lock:my.proxy.lock;
- 
-  while(li != NULL){
-    if(!strncasecmp(li->realm, realm, strlen(realm))){ 
-      pthread_mutex_lock(&(lock)); 
-      snprintf( 
-        buf, sizeof(buf), 
-        "%s:%s", 
-        (li->username!=NULL)?li->username:"", (li->password!=NULL)?li->password:"" 
-      ); 
-      if(service==WWW){
-	xfree(my.auth.encode);
-        if(( base64_encode(buf, strlen(buf), &my.auth.encode) < 0 ))
-          return -1;
-      } else {
-	xfree(my.proxy.encode);
-        if((base64_encode(buf, strlen(buf), &my.proxy.encode) < 0))
-          return -1;
-      }
-      pthread_mutex_unlock(&(lock)); 
-      return 0;
-    } 
-    li = li->next;
-  }
-  /* failed to match, attempting default */
-  li = (service==WWW)?my.auth.head:my.proxy.head; 
-  if(li == NULL)
-    return -1;
-  pthread_mutex_lock(&(lock));
-  snprintf(
-    buf, sizeof buf,
-    "%s:%s",
-    (li->username!=NULL)?li->username:"", (li->password!=NULL)?li->password:""
-  ); 
-  if(service==WWW){
-    xfree(my.auth.encode);
-    if((base64_encode(buf, strlen(buf), &my.auth.encode) < 0))
-      return -1;
-  } else {
-    xfree(my.proxy.encode);
-    if(( base64_encode( buf, strlen(buf), &my.proxy.encode ) < 0 ))
-      return -1;
-  }
-  pthread_mutex_unlock(&(lock));
-  return 0;
-}
-
-/* Digest implementation starts here */
-struct DIGEST_CRED
-{
+struct DIGEST_CRED {
   char *username;
   char *password;
   char *cnonce_value;
@@ -106,8 +59,7 @@ struct DIGEST_CRED
   unsigned int nc_value;
 };
 
-struct DIGEST_CHLG
-{
+struct DIGEST_CHLG {
  char *realm;
  char *domain;
  char *nonce;
@@ -117,8 +69,7 @@ struct DIGEST_CHLG
  char *qop;
 };
 
-typedef enum
-{
+typedef enum {
   REALM,
   DOMAIN,
   NONCE,
@@ -126,10 +77,339 @@ typedef enum
   STALE,
   ALGORITHM,
   QOP,
-
   UNKNOWN
+} KEY_HEADER_E;
+
+size_t AUTHSIZE = sizeof(struct AUTH_T);
+
+private BOOLEAN       __basic_header(AUTH this, SCHEME scheme, CREDS creds);
+private DCHLG *       __digest_challenge(const char *challenge);
+private DCRED *       __digest_credentials(CREDS creds, size_t *randseed);
+private KEY_HEADER_E  __get_keyval(const char *key);
+private char *        __get_random_string(size_t length, unsigned int *randseed);
+private char *        __get_h_a1(const DCHLG *chlg, DCRED *cred, const char *nonce_value);
+private char *        __get_md5_str(const char *buf);
+private BOOLEAN       __str_list_contains(const char *str, const char *pattern, size_t pattern_len);
+
+AUTH
+new_auth()
+{
+  AUTH this;
+
+  this = calloc(AUTHSIZE, 1);
+  this->creds  = new_array();
+  this->basic.encode  = xstrdup("");
+  this->digest.encode = xstrdup("");
+  this->proxy.encode  = xstrdup("");
+  return this;
 }
-KEY_HEADER_E;
+
+AUTH
+auth_destroy(AUTH this)
+{
+  this->creds = array_destroy(this->creds);
+  xfree(this);
+  return NULL;
+}
+
+void
+auth_add(AUTH this, CREDS creds) 
+{
+  array_npush(this->creds, creds, CREDSIZE);
+  return;
+}
+
+void
+auth_display(AUTH this, SCHEME scheme)
+{
+  size_t i;
+  //XXX: Needs to be reformatted for siege -C
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (creds_get_scheme(tmp) == scheme) {
+      printf("credentials:  %s:%s:%s\n", creds_get_username(tmp), creds_get_password(tmp), creds_get_realm(tmp));
+    }
+  } 
+}
+
+char *
+auth_get_basic_header(AUTH this, SCHEME scheme)
+{
+  if (scheme == PROXY) {
+    return this->proxy.encode;
+  } else {
+    return this->basic.encode;
+  }  
+}
+
+BOOLEAN
+auth_set_basic_header(AUTH this, SCHEME scheme, char *realm) 
+{
+  size_t i;
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), realm)) {
+      if (creds_get_scheme(tmp) == HTTP || creds_get_scheme(tmp) == HTTPS) {
+        return __basic_header(this, scheme, tmp); 
+      }
+    }
+  }
+  /**
+   * didn't match a realm, trying 'any'
+   */ 
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), "any")) {
+      if (creds_get_scheme(tmp) == HTTP || creds_get_scheme(tmp) == HTTPS) {
+        return __basic_header(this, scheme, tmp); 
+      }
+    }
+  }
+  return FALSE; 
+}
+
+//digest_generate_authorization(C->auth.wwwchlg, C->auth.wwwcred, "GET", fullpath);
+char *
+auth_get_digest_header(AUTH this, SCHEME scheme, DCHLG *chlg, DCRED *cred, const char *method, const char *uri)
+{
+  size_t len;
+  char  *cnonce      = NULL;
+  char  *nonce_count = NULL;
+  char  *qop         = NULL;
+  char  *response    = NULL;
+  char  *request_digest = NULL;
+  char  *h_a1 = NULL;
+  char  *h_a2 = NULL;
+  char  *opaque = NULL;
+  char  *result, *tmp;
+
+  if (NULL != chlg->qop) {
+    nonce_count = xstrcat(", nc=", cred->nc, NULL);
+    cnonce = xstrcat(", cnonce=\"", cred->cnonce_value, "\"", NULL);
+
+    if (NULL == (h_a1 = __get_h_a1(chlg, cred, chlg->nonce))) {
+      fprintf(stderr, "error calling __get_h_a1\n");
+      return NULL;
+    }
+
+    if (__str_list_contains(chlg->qop, "auth", 4)) {
+      qop = xstrdup(", qop=auth");
+      tmp = xstrcat(method, ":", uri, NULL);
+      h_a2 = __get_md5_str(tmp);
+      xfree(tmp);
+
+      tmp = xstrcat(h_a1,":",chlg->nonce,":",cred->nc,":",cred->cnonce_value,":auth:",h_a2,NULL);
+      request_digest = __get_md5_str(tmp);
+      xfree(tmp);
+      response = xstrcat(", response=\"", request_digest, "\"", NULL);
+    } else {
+      fprintf(stderr, "error quality of protection not supported: %s\n", chlg->qop);
+      return NULL;
+    }
+  } else {
+    if (NULL == (h_a1 = __get_h_a1(chlg, cred, ""))) {
+      NOTIFY(ERROR, "__get_h_a1\n");
+      return NULL;
+    }
+    tmp = xstrcat(method, ":", uri, NULL);
+    h_a2 = __get_md5_str(tmp);
+    xfree(tmp);
+    tmp = xstrcat(h_a1, ":", chlg->nonce, ":", h_a2, NULL);
+    request_digest = __get_md5_str(tmp);
+    xfree(tmp);
+    response = xstrcat(" response=\"", request_digest, "\"", NULL);
+  }
+  if (NULL != chlg->opaque)
+    opaque = xstrcat(", opaque=\"", chlg->opaque, "\"", NULL);
+
+  result = xstrcat (
+    "Digest username=\"", cred->username, "\", realm=\"", chlg->realm, "\", nonce=\"", chlg->nonce, 
+    "\", uri=\"", uri, "\", algorithm=", chlg->algorithm, response, opaque ? opaque : "", qop ? qop : "", 
+    nonce_count ? nonce_count : "", cnonce ? cnonce : "", NULL
+  );
+
+  (cred->nc_value)++;
+  snprintf(cred->nc, sizeof(cred->nc), "%.8x", cred->nc_value);
+
+  if (0 == strcasecmp("MD5", chlg->algorithm))
+    xfree(h_a1);
+
+  xfree(nonce_count);
+  xfree(cnonce);
+  xfree(qop);
+  xfree(response);
+  xfree(request_digest);
+  xfree(h_a2);
+  xfree(opaque);
+
+  len = strlen(result)+32;
+
+  if (scheme == PROXY) {
+    this->proxy.encode = xmalloc(len);
+    memset(this->proxy.encode, '\0', len);
+    snprintf(this->proxy.encode, len, "Proxy-Authorization: %s\015\012", result);
+    xfree(result);
+    return this->proxy.encode;
+  } else {
+    this->digest.encode = xmalloc(len);
+    memset(this->digest.encode, '\0', len);
+    snprintf(this->digest.encode, len, "Authorization: %s\015\012", result);
+    xfree(result);
+    return this->digest.encode;
+  }  
+}
+
+BOOLEAN 
+auth_set_digest_header(AUTH this, DCHLG **chlg, DCRED **cred, size_t *rand, char *realm, char *str) {
+  size_t  i;
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), realm)) {
+      *chlg = __digest_challenge(str);
+      *cred = __digest_credentials(tmp, rand);
+      if (*cred == NULL || *chlg == NULL) return FALSE;
+      return TRUE;
+    }
+  }
+  /**
+   * didn't match a realm, trying 'any'
+   */ 
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), "any")) {
+      *chlg = __digest_challenge(str);
+      *cred = __digest_credentials(tmp, rand);
+      if (*cred == NULL || *chlg == NULL) return FALSE;
+      return TRUE;
+    }
+  }
+  return FALSE; 
+}
+
+BOOLEAN
+auth_get_proxy_required(AUTH this)
+{
+  return this->proxy.required;
+}
+
+char *
+auth_get_proxy_host(AUTH this) 
+{
+  return this->proxy.hostname;
+}
+
+int
+auth_get_proxy_port(AUTH this)
+{
+  return this->proxy.port;
+}
+
+void
+auth_set_proxy_required(AUTH this, BOOLEAN required)
+{
+  this->proxy.required = required;
+}
+
+void
+auth_set_proxy_host(AUTH this, char *host)
+{
+  this->proxy.hostname = xstrdup(host);
+  this->proxy.required = TRUE;
+}
+
+void
+auth_set_proxy_port(AUTH this, int port)
+{
+  this->proxy.port = port;
+}
+
+char *
+auth_get_ftp_username(AUTH this, char *realm) 
+{
+  size_t  i;
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), realm)) {
+      if (creds_get_scheme(tmp) == FTP) {
+        return creds_get_username(tmp); 
+      }
+    }
+  }
+  /**
+   * didn't match a realm, trying 'any'
+   */ 
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), "any")) {
+      if (creds_get_scheme(tmp) == FTP) {
+        return creds_get_username(tmp); 
+      }
+    }
+  }
+  return ""; 
+}
+
+char *
+auth_get_ftp_password(AUTH this, char *realm)
+{
+  size_t i; 
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), realm)) {
+      if (creds_get_scheme(tmp) == FTP) {
+        return creds_get_password(tmp);          
+      }
+    }
+  }
+  /**
+   * didn't match a realm, trying 'any'
+   */
+  for (i = 0; i < array_length(this->creds); i++) {
+    CREDS tmp = array_get(this->creds, i);
+    if (strmatch(creds_get_realm(tmp), "any")) {
+      if (creds_get_scheme(tmp) == FTP) {
+        return creds_get_password(tmp);          
+      }
+    }
+  }
+  return "";   
+}
+
+private BOOLEAN
+__basic_header(AUTH this, SCHEME scheme, CREDS creds)
+{
+  char    buf[256];
+  char   *hdr;
+  size_t  len;
+  BOOLEAN ret = TRUE;
+
+  memset(buf, '\0', sizeof(buf));
+  pthread_mutex_lock(&(this->lock));
+  snprintf(buf, sizeof buf,"%s:%s",creds_get_username(creds), creds_get_password(creds));
+  if (scheme==PROXY) {
+    xfree(this->proxy.encode);
+    if ((base64_encode(buf, strlen(buf), &hdr) < 0)) {
+      ret = FALSE;
+    } else {
+      len = strlen(hdr)+32;
+      this->proxy.encode = xmalloc(len);
+      memset(this->proxy.encode, '\0', len); 
+      snprintf(this->proxy.encode, len, "Proxy-Authorization: Basic %s\015\012", hdr);
+    } 
+  } else {
+    xfree(this->basic.encode);
+    if ((base64_encode(buf, strlen(buf), &hdr) < 0 )) {
+      ret = FALSE;
+    } else {
+      len = strlen(hdr)+32;
+      this->basic.encode = xmalloc(len);
+      memset(this->basic.encode, '\0', len); 
+      snprintf(this->basic.encode, len, "Authorization: Basic %s\015\012", hdr);
+    }
+  }
+  pthread_mutex_unlock(&(this->lock));
+  return ret; 
+}
 
 typedef struct
 {
@@ -137,36 +417,79 @@ typedef struct
   KEY_HEADER_E keyval;
 } KEYPARSER;
 
-static const KEYPARSER keyparser_array[] = {
-  {"realm", REALM },
-  {"domain", DOMAIN },
-  {"nonce", NONCE },
-  {"opaque", OPAQUE },
-  {"stale", STALE },
-  {"algorithm", ALGORITHM },
-  {"qop", QOP },
-  {NULL, UNKNOWN}
+static const KEYPARSER keyparser[] = 
+{
+  { "realm",     REALM     },
+  { "domain",    DOMAIN    },
+  { "nonce",     NONCE     },
+  { "opaque",    OPAQUE    },
+  { "stale",     STALE     },
+  { "algorithm", ALGORITHM },
+  { "qop",       QOP       },
+  { NULL,        UNKNOWN   }
 };
 
-static KEY_HEADER_E
-get_keyval(const char *key)
+
+private KEY_HEADER_E
+__get_keyval(const char *key)
 {
   int i;
 
-  for(i = 0; keyparser_array[i].keyname; i++) {
-    if(!strcasecmp(key, keyparser_array[i].keyname))
-      return keyparser_array[i].keyval;
+  for (i = 0; keyparser[i].keyname; i++) {
+    if (!strcasecmp(key, keyparser[i].keyname)) {
+      return keyparser[i].keyval;
+    }
   }
-
   return UNKNOWN;
 }
 
-static DIGEST_CHLG *
-digest_challenge_make(const char *challenge)
+private char *
+__get_random_string(size_t length, unsigned int *randseed)
 {
-  DIGEST_CHLG *result;
-  const char *beg, *end;
-  char *key, *value;
+  const unsigned char b64_alphabet[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ./";
+  unsigned char *result;
+  size_t i;
+
+  result = xmalloc(sizeof(unsigned char) * (length + 1));
+
+  for(i = 0; i < length; i++)
+    result[i] = (int) (255.0 * (pthread_rand_np(randseed) / (RAND_MAX + 1.0)));
+  for (i = 0; i < length; i++)
+    result[i] = b64_alphabet[(result[i] % ((sizeof(b64_alphabet) - 1) / sizeof(unsigned char)))];
+
+  result[length] = '\0';
+
+  return (char *) result;
+}
+
+
+#define DIGEST_CNONCE_SIZE 16
+
+private DCRED *
+__digest_credentials(CREDS creds, size_t *randseed)
+{
+  DCRED *result;
+
+  result = xcalloc(1, sizeof(struct DIGEST_CRED));
+  result->username = xstrdup(creds_get_username(creds));
+  result->password = xstrdup(creds_get_password(creds));
+  /* Generate a pseudo random cnonce */
+  result->cnonce_value = __get_random_string(DIGEST_CNONCE_SIZE, randseed);
+  result->nc_value = 1U;
+  snprintf(result->nc, sizeof(result->nc), "%.8x", result->nc_value);
+  result->h_a1 = NULL;
+
+  return result;
+}
+
+private DCHLG *
+__digest_challenge(const char *challenge)
+{
+  DCHLG *result;
+  char  *key; 
+  char  *val;
+  const char *beg; 
+  const char *end;
   KEY_HEADER_E keyval;
 
   result = xcalloc(1, sizeof(struct DIGEST_CHLG));
@@ -199,38 +522,38 @@ digest_challenge_make(const char *challenge)
       beg++;
 
     /* find value */
-    value = NULL;
+    val = NULL;
     if (*beg == '=') {
       beg++;
       while (isspace(*beg))
-	beg++;
+        beg++;
 
       if (*beg == '\"') {     /* quoted string */
-	beg++;
-	end = beg;
-	while (*end != '\"' && *end != '\0') {
-	  if (*end == '\\' && end[1] != '\0') {
-	    end++;      /* escaped char */
-	  }
-	  end++;
-	}
-	value = xmalloc((1 + end - beg) * sizeof(char));
-	memcpy(value, beg, end - beg);
-	value[end - beg] = '\0';
-	beg = end;
-	if (*beg != '\0') {
-	  beg++;
-	}
+        beg++;
+        end = beg;
+        while (*end != '\"' && *end != '\0') {
+          if (*end == '\\' && end[1] != '\0') {
+            end++;      /* escaped char */
+          }
+          end++;
+        }
+        val = xmalloc((1 + end - beg) * sizeof(char));
+        memcpy(val, beg, end - beg);
+        val[end - beg] = '\0';
+        beg = end;
+        if (*beg != '\0') {
+          beg++;
+        }
       }
       else {              /* token */
-	end = beg;
-	while (*end != ',' && *end != '\0' && !isspace(*end))
-	  end++;
+        end = beg;
+        while (*end != ',' && *end != '\0' && !isspace(*end))
+          end++;
 
-	value = xmalloc((1 + end - beg) * sizeof(char));
-	memcpy(value, beg, end - beg);
-	value[end - beg] = '\0';
-	beg = end;
+        val = xmalloc((1 + end - beg) * sizeof(char));
+        memcpy(val, beg, end - beg);
+        val[end - beg] = '\0';
+        beg = end;
       }
     }
 
@@ -240,33 +563,33 @@ digest_challenge_make(const char *challenge)
     if (*beg != '\0') {
       beg++;
     }
-
-    keyval = get_keyval(key);
-    switch(keyval) {
+ 
+    keyval = __get_keyval(key);
+    switch (keyval) {
       case REALM:
-      result->realm = value;
+      result->realm = val;
       break;
       case DOMAIN:
-      result->domain = value;
+      result->domain = val;
       break;
       case NONCE:
-      result->nonce = value;
+      result->nonce = val;
       break;
       case OPAQUE:
-      result->opaque = value;
+      result->opaque = val;
       break;
       case STALE:
-      result->stale = value;
+      result->stale = val;
       break;
       case ALGORITHM:
-      result->algorithm = value;
+      result->algorithm = val;
       break;
       case QOP:
-      result->qop = value;
+      result->qop = val;
       break;
       default:
       fprintf(stderr, "unknown key [%s]\n", key);
-      xfree(value);
+      xfree(val);
       break;
     }
     xfree(key);
@@ -275,138 +598,8 @@ digest_challenge_make(const char *challenge)
   return result;
 }
 
-void
-digest_challenge_destroy(DIGEST_CHLG *challenge)
-{
-  if(challenge != NULL){
-    xfree(challenge->realm);
-    xfree(challenge->domain);
-    xfree(challenge->nonce);
-    xfree(challenge->opaque);
-    xfree(challenge->stale);
-    xfree(challenge->algorithm);
-    xfree(challenge->qop);
-    xfree(challenge);
-  }
-}
-
-static char *
-get_random_string(size_t length, unsigned int *randseed)
-{
-  const unsigned char b64_alphabet[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ./";
-  unsigned char *result;
-  size_t i;
-
-  result = xmalloc(sizeof(unsigned char) * (length + 1));
-
-  for(i = 0; i < length; i++)
-    result[i] = (int) (255.0 * (pthread_rand_np(randseed) / (RAND_MAX + 1.0)));
-  for (i = 0; i < length; i++)
-    result[i] = b64_alphabet[(result[i] % ((sizeof(b64_alphabet) - 1) / sizeof(unsigned char)))];
-
-  result[length] = '\0';
-
-  return (char *) result;
-}
-
-#define DIGEST_CNONCE_SIZE 16
-
-static DIGEST_CRED *
-digest_credential_make(const char *username, const char *password, unsigned int *randseed)
-{
-  DIGEST_CRED *result;
-
-  result = xcalloc(1, sizeof(struct DIGEST_CRED));
-  result->username = xstrdup(username);
-  result->password = xstrdup(password);
-  /* Generate a pseudo random cnonce */
-  result->cnonce_value = get_random_string(DIGEST_CNONCE_SIZE, randseed);
-  result->nc_value = 1U;
-  snprintf(result->nc, sizeof(result->nc), "%.8x", result->nc_value);
-  result->h_a1 = NULL;
-
-  return result;
-}
-
-void
-digest_credential_destroy(DIGEST_CRED *credentials)
-{
-  if(credentials != NULL){
-    xfree(credentials->username);
-    xfree(credentials->password);
-    xfree(credentials->cnonce_value);
-    xfree(credentials->h_a1);
-    xfree(credentials);
-  }
-}
-
-int
-set_digest_authorization(SERVICE service, DIGEST_CHLG **challenge, DIGEST_CRED **credentials, unsigned int *randseed, char *realm, char *str) 
-{
-  char buf[64];
-  struct LOGIN *li     = (service==WWW)?my.auth.head:my.proxy.head;
-
-  while(li != NULL){
-    if(!strncasecmp(li->realm, realm, strlen(realm))){ 
-      snprintf( 
-	  buf, sizeof(buf), 
-	  "%s:%s", 
-	  (li->username!=NULL)?li->username:"", (li->password!=NULL)?li->password:"" 
-	  ); 
-
-      /**
-       * XXX: need to add additional header info here
-       */
-      *challenge = digest_challenge_make(str);
-      *credentials = digest_credential_make(li->username, li->password, randseed);
-      if(*credentials == NULL || *challenge == NULL)
-	return -1;
-
-      return 0;
-    }
-    li = li->next;
-  }
-  /* failed to match, attempting default */
-  li = (service==WWW)?my.auth.head:my.proxy.head; 
-  if(li == NULL)
-    return -1;
-  snprintf(
-      buf, sizeof( buf ),
-      "%s:%s",
-      (li->username!=NULL)?li->username:"", (li->password!=NULL)?li->password:""
-      ); 
-
-  *challenge = digest_challenge_make(str);
-  *credentials = digest_credential_make(li->username, li->password, randseed);
-  if(*credentials == NULL || *challenge == NULL)
-    return -1;
-
-  return 0;
-}
-
-static int
-str_parse_list_has(const char *str, const char *pattern, size_t pattern_len)
-{
-  const char *ptr;
-
-  ptr = str;
-  do {
-    if (0 == strncmp(ptr, pattern, pattern_len)
-	&& ((',' == ptr[pattern_len]) || ('\0' == ptr[pattern_len]))) {
-      return 1;
-    }
-
-    if (NULL != (ptr = strchr(ptr, ',')))
-      ptr++;
-
-  }
-  while (NULL != ptr);
-
-  return 0;
-}
-
-static char *
-md5_str(const char *buf)
+private char *
+__get_md5_str(const char *buf)
 {
   const char *hex = "0123456789abcdef";
   struct md5_ctx ctx;
@@ -430,140 +623,56 @@ md5_str(const char *buf)
   return result;
 }
 
-static char *
-dyn_strcat(const char *arg1, ...)
-{
-  const char *argptr;
-  char *resptr, *result;
-  int nargs = 0;
-  size_t  len = 0;
-  va_list valist;
 
-  va_start(valist, arg1);
-
-  for(argptr = arg1; argptr != NULL; argptr = va_arg(valist, char *))
-    len += strlen(argptr);
-
-  va_end(valist);
-
-  result = xmalloc(len + 1);
-  resptr = result;
-
-  va_start(valist, arg1);
-
-  nargs = 0;
-  for(argptr = arg1; argptr != NULL; argptr = va_arg(valist, char *)) {
-    len = strlen(argptr);
-    memcpy(resptr, argptr, len);
-    resptr += len;
-  }
-
-  va_end(valist);
-
-  *resptr = '\0';
-
-  return result;
-}
-
-static char *
-get_h_a1(const DIGEST_CHLG *challenge, DIGEST_CRED *credentials, const char *nonce_value)
+private char *
+__get_h_a1(const DCHLG *chlg, DCRED *cred, const char *nonce_value)
 {
   char *h_usrepa, *result, *tmp;
 
-  if (0 == strcasecmp("MD5", challenge->algorithm)) {
-    tmp = dyn_strcat(credentials->username, ":", challenge->realm, ":", credentials->password, NULL);
-    h_usrepa = md5_str(tmp);
+  if (0 == strcasecmp("MD5", chlg->algorithm)) {
+    tmp = xstrcat(cred->username, ":", chlg->realm, ":", cred->password, NULL);
+    h_usrepa = __get_md5_str(tmp);
     xfree(tmp);
     result = h_usrepa;
   }
-  else if (0 == strcasecmp("MD5-sess", challenge->algorithm)) {
-    if ((NULL == credentials->h_a1)) {
-      tmp = dyn_strcat(credentials->username, ":", challenge->realm, ":", credentials->password, NULL);
-      h_usrepa = md5_str(tmp);
+  else if (0 == strcasecmp("MD5-sess", chlg->algorithm)) {
+    if ((NULL == cred->h_a1)) {
+      tmp = xstrcat(cred->username, ":", chlg->realm, ":", cred->password, NULL);
+      h_usrepa = __get_md5_str(tmp);
       xfree(tmp);
-      tmp = dyn_strcat(h_usrepa, ":", nonce_value, ":", credentials->cnonce_value, NULL);
-      result = md5_str(tmp);
+      tmp = xstrcat(h_usrepa, ":", nonce_value, ":", cred->cnonce_value, NULL);
+      result = __get_md5_str(tmp);
       xfree(tmp);
-      credentials->h_a1 = result;
+      cred->h_a1 = result;
     }
     else {
-      return credentials->h_a1;
+      return cred->h_a1;
     }
   }
   else {
-    fprintf(stderr, "invalid call to %s algorithm is [%s]\n", __FUNCTION__, challenge->algorithm);
+    fprintf(stderr, "invalid call to %s algorithm is [%s]\n", __FUNCTION__, chlg->algorithm);
     return NULL;
   }
 
   return result;
 }
 
-char *
-digest_generate_authorization(const DIGEST_CHLG *challenge,DIGEST_CRED *credentials,const char *method,const char *uri)
+private BOOLEAN
+__str_list_contains(const char *str, const char *pattern, size_t pattern_len)
 {
-  char *nonce_count = NULL;
-  char *cnonce = NULL;
-  char *qop = NULL;
-  char *response = NULL;
-  char *request_digest = NULL;
-  char *h_a1 = NULL;
-  char *h_a2 = NULL;
-  char *opaque = NULL;
-  char *result, *tmp;
+  const char *ptr;
 
-  if (NULL != challenge->qop) {
-    nonce_count = dyn_strcat(", nc=", credentials->nc, NULL);
-    cnonce = dyn_strcat(", cnonce=\"", credentials->cnonce_value, "\"", NULL);
-
-    if (NULL == (h_a1 = get_h_a1(challenge, credentials, challenge->nonce))) {
-      fprintf(stderr, "error calling get_h_a1\n");
-      return NULL;
+  ptr = str;
+  do {
+    if (0 == strncmp(ptr, pattern, pattern_len)
+        && ((',' == ptr[pattern_len]) || ('\0' == ptr[pattern_len]))) {
+      return TRUE;
     }
 
-    if (str_parse_list_has(challenge->qop, "auth", 4)) {
-      qop = xstrdup(", qop=auth");
-      tmp = dyn_strcat(method, ":", uri, NULL);
-      h_a2 = md5_str(tmp);
-      xfree(tmp);
-
-      tmp = dyn_strcat(h_a1,":",challenge->nonce,":",credentials->nc,":",credentials->cnonce_value,":auth:",h_a2,NULL);
-      request_digest = md5_str(tmp);
-      xfree(tmp);
-      response = dyn_strcat(", response=\"", request_digest, "\"", NULL);
-    } else {
-      fprintf(stderr, "error quality of protection not supported: %s\n", challenge->qop);
-      return NULL;
-    }
-  } else {
-    if (NULL == (h_a1 = get_h_a1(challenge, credentials, ""))) {
-      fprintf(stderr, "error calling get_h_a1\n");
-      return NULL;
-    }
-    tmp = dyn_strcat(method, ":", uri, NULL);
-    h_a2 = md5_str(tmp);
-    xfree(tmp);
-    tmp = dyn_strcat(h_a1, ":", challenge->nonce, ":", h_a2, NULL);
-    request_digest = md5_str(tmp);
-    xfree(tmp);
-    response = dyn_strcat(" response=\"", request_digest, "\"", NULL);
+    if (NULL != (ptr = strchr(ptr, ','))) ptr++;
   }
-  if (NULL != challenge->opaque)
-    opaque = dyn_strcat(", opaque=\"", challenge->opaque, "\"", NULL);
+  while (NULL != ptr);
 
-  result = dyn_strcat("Digest username=\"", credentials->username, "\", realm=\"", challenge->realm, "\", nonce=\"", challenge->nonce, "\", uri=\"", uri, "\", algorithm=", challenge->algorithm, response, opaque ? opaque : "", qop ? qop : "", nonce_count ? nonce_count : "", cnonce ? cnonce : "", NULL);
-
-  (credentials->nc_value)++;
-  snprintf(credentials->nc, sizeof(credentials->nc), "%.8x", credentials->nc_value);
-
-  if (0 == strcasecmp("MD5", challenge->algorithm))
-    xfree(h_a1);
-  xfree(nonce_count);
-  xfree(cnonce);
-  xfree(qop);
-  xfree(response);
-  xfree(request_digest);
-  xfree(h_a2);
-  xfree(opaque);
-
-  return result;
+  return FALSE;
 }
+

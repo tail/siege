@@ -50,7 +50,7 @@ total=$startcl
 sub=`expr $inc \* $numruns`
 total=$total+$sub
 
-if [ 600 -lt $total ]
+if [ 600 -lt $(($total)) ]
 	then
 		echo "The options you specified will generate more than \
 600 concurrent users.  This causes problems on many systems.  Press \
@@ -89,16 +89,14 @@ numurls=`cat $site | grep -v "#" | wc -l`
 
 currentcl=$startcl # set running count of clients to inital value
 
-i=0
-j=1
-while [ $numruns -gt $i ]
+i=1
+while [ $numruns -ge $i ]
 	do
-		echo "Starting run number" $j
+		echo "Starting run number" $i
 		%_PREFIX%/siege -f $site -c $currentcl -t $numurls -d $delay >> siege.$serial
-		currentcl=$currentcl+$inc
-		i=$i+1
-		j=$i+1
-		sleep 30
+        currentcl=$(($currentcl+$inc))
+		i=$(($i+1))
+		#sleep 30
 	done
 
 # Finally, we call siege2csv.pl to convert all the human-readable Siege

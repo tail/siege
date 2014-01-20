@@ -16,14 +16,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * -- 
  */
 #include <config.h>
 #include <time.h>  
 #include <stdarg.h>
+
+#define BLACK      0
+#define RED        1
+#define GREEN      2
+#define YELLOW     3
+#define BLUE       4
+#define MAGENTA    5
+#define CYAN       6
+#define WHITE      7
 
 /**
  * Error notification
@@ -39,16 +48,16 @@ void OPENLOG(char *program_name);
 void CLOSELOG(void);
 void SYSLOG(LEVEL L, const char *fmt, ...);
 void NOTIFY(LEVEL L, const char *fmt, ...);
+void DISPLAY(int color, const char *fmt, ...);
 
 /**
  * Memory management
  */
-#define SIEGEmalloc(x) joe_malloc( x, __FILE__, __LINE__)
-
 void * xrealloc(void *, size_t);
 void * xmalloc (size_t);
 void * xcalloc (size_t, size_t); 
 char * xstrdup(const char *str);
+char * xstrcat(const char *arg1, ...);
 void xfree(void *ptr); 
 
 /**

@@ -1,9 +1,9 @@
 /**
  * Signal Handling
  *
- * Copyright (C) 2000-2009 by
- * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
- * This file is distributed as part of Siege 
+ * Copyright (C) 2013 by
+ * Jeffrey Fulmer - <jeff@joedog.org>, et al.
+ * This file is distributed as part of Siege
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,11 +15,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * --
- *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *--
  */
 #ifdef  HAVE_CONFIG_H
 # include <config.h>

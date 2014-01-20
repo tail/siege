@@ -1,8 +1,9 @@
 /**
- * URL support
+ * URL Support
  *
- * Copyright (C) 2000-2006 Jeffrey Fulmer <jeff@joedog.org>
- * This file is part of Siege
+ * Copyright (C) 2013 by
+ * Jeffrey Fulmer - <jeff@joedog.org>, et al.
+ * This file is distributed as part of Siege
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,70 +15,128 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * --
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *--
  */
-#ifndef  URL_H
-#define  URL_H
+#ifndef __URL_H
+#define __URL_H
 #include <stdlib.h>
+#include <joedog/defs.h>
 #include <joedog/boolean.h>
 
-#define MAX_URL       4096
+/** 
+ * a URL object 
+ */
+typedef struct URL_T *URL;
 
 /**
- * client data
+ * For memory allocation; URLSIZE 
+ * provides the object size 
+ */
+extern size_t  URLSIZE;   
+
+/**
+ * HTTP method 
  */
 typedef enum {
-  URL_GET   = 0,
-  URL_POST  = 1
-} DIRECTIVE;
+  NOMETHOD =  0,
+  HEAD     =  1,
+  GET      =  2,
+  POST     =  3,
+  PUT      =  4,
+  DELETE   =  5,
+  TRACE    =  6,
+  OPTIONS  =  7,
+  CONNECT  =  8,
+} METHOD;
+  
+/**
+ * enum SCHEME
+ */
+typedef enum {
+  UNSUPPORTED = 0,
+  HTTP        = 1,
+  HTTPS       = 2,
+  FTP         = 3,
+  PROXY       = 4
+} SCHEME;
+
+
+/* Constructor / destructor */
+URL      new_url(char *str);
+URL      url_destroy(URL this);
+void     url_dump(URL this);
+
+void     url_set_ID(URL this, int id);
+void     url_set_hostname(URL this, char *hostname);
+void     url_set_last_modified(URL this, char *date);
+void     url_set_etag(URL this, char *etag);
+void     url_set_conttype(URL this, char *type);
+void     url_set_postdata(URL this, char *postdata, size_t postlen);
+void     url_set_method(URL this, METHOD method);
+
+int      url_get_ID(URL this);
+METHOD   url_get_method(URL this);
+char *   url_get_method_name(URL this) ;
+
+/* <scheme>://<username>:<password>@<hostname>:<port>/<path>;<params>?<query>#<frag> */
+char *   url_get_absolute(URL this);
+
+/* <SCHEME>://<username>:<password>@<hostname>:<port>/<path>;<params>?<query>#<frag> */
+SCHEME   url_get_scheme(URL this);
+char *   url_get_scheme_name(URL this);
+
+/* <scheme>://<USERNAME>:<password>@<hostname>:<port>/<path>;<params>?<query>#<frag> */
+char *   url_get_username(URL this);
+
+/* <scheme>://<username>:<PASSWORD>@<hostname>:<port>/<path>;<params>?<query>#<frag> */
+char *   url_get_password(URL this);
+
+/* <scheme>://<username>:<password>@<HOSTNAME>:<port>/<path>;<params>?<query>#<frag> */
+char *   url_get_hostname(URL this);
+
+/* <scheme>://<username>:<password>@<hostname>:<PORT>/<path>;<params>?<query>#<frag> */
+int      url_get_port(URL this);
+
+/* <scheme>://<username>:<password>@<hostname>:<port>/<PATH>;<params>?<query>#<frag> */
+char *   url_get_path(URL this);
+
+/* <scheme>://<username>:<password>@<hostname>:<port>/<FILE>;<params>?<query>#<frag> */
+char *   url_get_file(URL this);
+char *   url_get_request(URL this); // "<PATH><FILE>"
+
+/* <scheme>://<username>:<password>@<hostname>:<port>/<file>;<PARAMS>?<query>#<frag> */
+char *   url_get_parameters(URL this);
+
+/* <scheme>://<username>:<password>@<hostname>:<port>/<path>;<params>?<QUERY>#<frag> */
+char *   url_get_query(URL this);
+
+/* <scheme>://<username>:<password>@<hostname>:<port>/<path>;<params>?<query>#<FRAG> */
+char *   url_get_fragment(URL this);
+
+
+/* 
+ *  Make a decision about what to display.  Will show absolute url when fullurl
+ *  is set to ture.  Otherwise we check the HTTP method to display the submitted
+ *  URI or the respective line provided from the urls file.
+ */
+char *   url_get_display(URL this);
 
 /**
- * enum PROTOCOL
- * tcp/ip protocol
+ * POST method getters
+ * <scheme>://<username>:<password>@<hostname>:<port>/<path> POST <params>?<query>#<frag> 
  */
-typedef enum PROTOCOL{
-  HTTP        = 0,
-  HTTPS       = 1,
-  UNSUPPORTED = 2
-} PROTOCOL;
+size_t   url_get_postlen(URL this);   
+char *   url_get_postdata(URL this);  
+char *   url_get_posttemp(URL this); 
+char *   url_get_conttype(URL this);  
+char *   url_get_if_modified_since(URL this);
+char *   url_get_etag(URL this);
+char *   url_get_realm(URL this);
+void     url_set_realm(URL this, char *realm);
+void     url_set_username(URL this, char *username);
+void     url_set_password(URL this, char *password);
 
-
-/**
- * URL struct URL
- */
-typedef struct
-{
-  int       urlid;         /* ADDED BY jason, UNIQUE ID   */
-  PROTOCOL  protocol;      /* currently only http/https   */
-  char      *hostname;     /* DNS entry or IP address     */
-  int       port;          /* tcp port num, defs: 80, 443 */
-  char      *pathname;     /* path to http resource.      */
-  DIRECTIVE calltype;      /* request: GET/POST/HEAD etc. */
-  size_t    postlen;       /* length of POST data         */
-  char      *postdata;
-  char      *posttemp;
-  char      *conttype;
-  char      url[MAX_URL];
-  time_t    expires;
-  time_t    modified;
-  BOOLEAN   cached;
-  char      *etag;
-} URL;
-
-int      protocol_length(char *url); 
-BOOLEAN  is_supported(char* url);
-int      get_default_port(PROTOCOL p);
-PROTOCOL get_protocol(const char *url);
-void     insert_childid(URL *U, int mypid);
-void     url_set_last_modified(URL *U, char *date);
-void     url_set_etag(URL *U, char *etag);
-void     url_set_expires(URL *U, int secs);
-char     *url_get_if_modified_since(URL *U);
-char     *url_get_etag(URL *U);
-URL      *build_url(char *url, int defaultport, int id);
-URL      *add_url(char *url, int id);
-
-#endif/*URL_H*/
+#endif/*__URL_H*/

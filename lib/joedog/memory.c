@@ -2,7 +2,7 @@
  * Memory handling
  * Library: joedog
  * 
- * Copyright (C) 2000-2007 by
+ * Copyright (C) 2000-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>
  * This file is distributed as part of Siege 
  *
@@ -16,9 +16,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * --
  *
  */
@@ -26,6 +26,7 @@
 #include <memory.h>
 #include <notify.h>
 #include <string.h>
+#include <stdarg.h>
 
 char *
 xstrdup(const char *str)
@@ -51,6 +52,41 @@ xstrdup(const char *str)
   memcpy(ret, str, len);
 #endif
   return ret; 
+}
+
+char *
+xstrcat(const char *arg1, ...)
+{
+  const char *argptr;
+  char *resptr, *result;
+  int nargs = 0;
+  size_t  len = 0;
+  va_list valist;
+
+  va_start(valist, arg1);
+
+  for(argptr = arg1; argptr != NULL; argptr = va_arg(valist, char *))
+    len += strlen(argptr);
+
+  va_end(valist);
+
+  result = xmalloc(len + 1);
+  resptr = result;
+
+  va_start(valist, arg1);
+
+  nargs = 0;
+  for(argptr = arg1; argptr != NULL; argptr = va_arg(valist, char *)) {
+    len = strlen(argptr);
+    memcpy(resptr, argptr, len);
+    resptr += len;
+  }
+
+  va_end(valist);
+
+  *resptr = '\0';
+
+  return result;
 }
 
 /**

@@ -44,6 +44,7 @@
 #include <setup.h>
 #include <joedog/boolean.h>
 
+#define MAX_TIME_LEN 64
 
 enum assume {
   DATE_MDAY,
@@ -122,10 +123,10 @@ timetostr(const time_t *T)
   struct tm *tm;
 
   tm   = gmtime(T);
-  line = xmalloc(64);
+  line = xmalloc(MAX_TIME_LEN);
 
   snprintf(
-    line, 64,
+    line, MAX_TIME_LEN,
     "If-Modified-Since: %s, %d %s %d %d:%d:%d GMT\015\012",
     wday[tm->tm_wday],
     tm->tm_mday,
@@ -136,6 +137,21 @@ timetostr(const time_t *T)
     tm->tm_sec
   );
 
+  return line;
+}
+
+char *
+timestamp()
+{
+  char *line;
+  time_t ltime;
+  struct tm *tm;
+
+  ltime = time(NULL);
+  tm    = localtime(&ltime);
+  line  = xmalloc(MAX_TIME_LEN);
+
+  strftime(line, 64, "[%a, %F %T] ", tm);
   return line;
 }
 

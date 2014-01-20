@@ -1,7 +1,7 @@
 /**
  * Configuration file support
  *
- * Copyright (C) 2000-2009 by
+ * Copyright (C) 2000-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * This file is distributed as part of Siege 
  *
@@ -15,9 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * --
  *
  */
@@ -76,7 +76,7 @@ read_cfg_file(LINES *l, char *filename)
   }
  
   line = xmalloc(BUFSIZE);
-  H = new_hash(16);
+  H = new_hash();
 
   l->index = 0;
   memset(line, 0, sizeof(line));
@@ -168,18 +168,17 @@ read_cmd_line(LINES *l, char *url)
 BOOLEAN
 is_variable_line(char *line)
 {
-  int pos;
-  int x;
+  char *pos, *x;
   char c;
 
   /**
    * check for variable assignment; make sure that on the left side 
    * of the = is nothing but letters, numbers, and/or underscores.
    */
-  pos = (int)strstr(line, "=");
-  if(pos > 0){
-    for(x = 0; x < (pos - (int)line); x++){
-      c = line[x];
+  pos = strstr(line, "=");
+  if (pos != NULL) {
+    for (x = line; x < pos; x++) {
+      c = *x;
       /* c must be A-Z, a-z, 0-9, or underscore. */
       if ((c < 'a' || c > 'z') &&
           (c < 'A' || c > 'Z') &&
@@ -196,3 +195,4 @@ is_variable_line(char *line)
   }
   return TRUE;
 }
+

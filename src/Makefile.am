@@ -28,7 +28,7 @@ WARN_CFLAGS        =   @WARN_CFLAGS@
 
 AM_CFLAGS          =   $(PTHREAD_CFLAGS) $(WARN_CFLAGS) $(SSL_CFLAGS)
 
-LDFLAGS            =   $(SSL_LDFLAGS) $(PTHREAD_LDFLAGS)  
+AM_LDFLAGS         =   $(SSL_LDFLAGS) $(PTHREAD_LDFLAGS)  
 
 LIBS               =   $(SSL_LIBS) 
 
@@ -43,10 +43,12 @@ base64.c   base64.h    \
 client.c   client.h    \
 cookie.c   cookie.h    \
 cfg.c      cfg.h       \
+creds.c    creds.h     \
 crew.c     crew.h      \
 data.c     data.h      \
 date.c     date.h      \
 eval.c     eval.h      \
+ftp.c      ftp.h       \
 getopt.c   getopt1.c   \
 handler.c  handler.h   \
 hash.c     hash.h      \

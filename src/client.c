@@ -1,7 +1,7 @@
 /**
  * HTTP/HTTPS client support
  *
- * Copyright (C) 2000-2007 by
+ * Copyright (C) 2000-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * This file is distributed as part of Siege 
  *
@@ -15,9 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * 
  */
 #include <setup.h>
@@ -25,11 +25,13 @@
 #include <signal.h>
 #include <sock.h>
 #include <ssl.h>
+#include <ftp.h>
 #include <http.h>
 #include <url.h>
 #include <util.h>
 #include <auth.h>
 #include <cookie.h>
+#include <date.h>
 #include <joedog/boolean.h>
 #include <joedog/defs.h>
 
@@ -40,8 +42,14 @@
 /**
  * local prototypes
  */
-private BOOLEAN http_request(CONN *C, URL *U, CLIENT *c);
-private void increment_failures();
+private BOOLEAN __request(CONN *C, URL U, CLIENT *c);
+private BOOLEAN __http(CONN *C, URL U, CLIENT *c);
+private BOOLEAN __ftp (CONN *C, URL U, CLIENT *c);
+private BOOLEAN __init_connection(CONN *C, URL U, CLIENT *c);
+private void    __increment_failures();
+private int     __select_color(int code);
+private URL     __normalize(URL req, char *location);
+
 
 #ifdef  SIGNAL_CLIENT_PLATFORM
 static void signal_handler( int i );
@@ -56,8 +64,8 @@ void clean_up();
 #ifdef SIGNAL_CLIENT_PLATFORM
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 #endif/*SIGNAL_CLIENT_PLATFORM*/
-float highmark = 0;
-float lowmark = -1;  
+float himark = 0;
+float lomark = -1;  
 
 /**
  * The thread entry point for clients.
@@ -113,10 +121,14 @@ start_routine(CLIENT *client)
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &state);
 #endif/*SIGNAL_CLIENT_PLATFORM*/ 
   if (my.login == TRUE) {
-    http_request(C, add_url(array_next(my.lurl), 0), client);
+    URL tmp = new_url(array_get(my.lurl, 0));
+    url_set_ID(tmp, 0);
+    __request(C, tmp, client);
   }
 
-  for (x = 0, y = 0; x < my.reps; x++, y++) {
+  //for (x = 0, y = 0; x < my.reps; x++, y++) {
+  y = client->id * (my.length / my.cusers);
+  for (x = 0; x < my.reps; x++, y++) {
     x = ((my.secs > 0) && ((my.reps <= 0)||(my.reps == MAXREPS))) ? 0 : x;
     if (my.internet == TRUE) {
       y = (unsigned int) (((double)pthread_rand_np(&(client->rand_r_SEED)) /
@@ -140,11 +152,11 @@ start_routine(CLIENT *client)
       printf("y out of bounds: %d >= %d", y, my.length); 
       y = 0; 
     }
-
-    if (client->U[y] != NULL && client->U[y]->hostname != NULL) {
+    URL tmp = array_get(client->urls, y);
+    if (tmp != NULL && url_get_hostname(tmp) != NULL) {
       client->auth.bids.www = 0; /* reset */
-      if ((ret = http_request(C, client->U[y], client))==FALSE) {
-        increment_failures();
+      if ((ret = __request(C, tmp, client))==FALSE) {
+        __increment_failures();
       }
     }
  
@@ -170,13 +182,28 @@ start_routine(CLIENT *client)
   return(NULL);
 }
 
+private BOOLEAN
+__request(CONN *C, URL U, CLIENT *client) {
+  C->scheme = url_get_scheme(U);
+ 
+  switch (C->scheme) {
+    case FTP:
+      return __ftp(C, U, client);
+    case HTTP:
+    case HTTPS:
+    default:
+      return __http(C, U, client);
+  }
+}
+
 /**
- * this function is common to the two client functions
- * above. This invokes the HTTP logic and compiles the
- * statistics for the run.
+ * HTTP client request.
+ * The protocol is executed in http.c 
+ * This function invoked functions inside that module
+ * and it gathers statistics about the request. 
  */
 private BOOLEAN
-http_request(CONN *C, URL *U, CLIENT *client)
+__http(CONN *C, URL U, CLIENT *client)
 {
   unsigned long bytes  = 0;
   int      code, fail;  
@@ -191,39 +218,20 @@ http_request(CONN *C, URL *U, CLIENT *client)
   struct   tm *tmp;
   size_t   len;
   char     fmtime[65];
-
-
-  if(my.csv){
+  URL  redirect_url = NULL; 
+ 
+  if (my.csv) {
     now = time(NULL);
 #ifdef HAVE_LOCALTIME_R
     tmp = (struct tm *)localtime_r(&now, &keepsake);
 #else
     tmp = localtime(&now);
 #endif/*HAVE_LOCALTIME_R*/
-    if(tmp)
-      len = strftime(fmtime, 64, "%Y-%m-%d %H:%M:%S", tmp);
-    else
-      snprintf(fmtime, 64, "n/a");
+    if (tmp) len = strftime(fmtime, 64, "%Y-%m-%d %H:%M:%S", tmp);
+    else snprintf(fmtime, 64, "n/a");
   }
 
-  C->pos_ini              = 0;
-  C->inbuffer             = 0; 
-  C->content.transfer     = NONE;
-  C->content.length       = 0;
-  C->connection.keepalive = (C->connection.max==1)?0:my.keepalive;
-  C->connection.reuse     = (C->connection.max==1)?0:my.keepalive;
-  C->connection.tested    = (C->connection.tested==0)?1:C->connection.tested; 
-  C->auth.www             = client->auth.www;
-  C->auth.wwwchlg         = client->auth.wwwchlg;
-  C->auth.wwwcred         = client->auth.wwwcred;
-  C->auth.proxy           = client->auth.proxy;
-  C->auth.proxychlg       = client->auth.proxychlg;
-  C->auth.proxycred       = client->auth.proxycred;
-  C->auth.type.www        = client->auth.type.www;
-  C->auth.type.proxy      = client->auth.type.proxy;
-  memset(C->buffer, 0, sizeof(C->buffer));
-
-  if (U->protocol == UNSUPPORTED) { 
+  if (url_get_scheme(U) == UNSUPPORTED) { 
     if (my.verbose && !my.get) {
       NOTIFY ( 
         ERROR,
@@ -241,83 +249,37 @@ http_request(CONN *C, URL *U, CLIENT *client)
     );
   }
 
-  C->prot = U->protocol;
-
   /* record transaction start time */
   start = times(&t_start);  
 
-  debug( 
-    "%s:%d attempting connection to %s:%d", 
-    __FILE__, __LINE__,
-    (my.proxy.required==TRUE)?my.proxy.hostname:U->hostname,
-    (my.proxy.required==TRUE)?my.proxy.port:U->port 
-  ); 
-
-  if (!C->connection.reuse || C->connection.status == 0) {
-    if (my.proxy.required) {
-      debug("%s:%d creating new socket:     %s:%d", __FILE__, __LINE__, my.proxy.hostname, my.proxy.port); 
-      C->sock = new_socket(C, my.proxy.hostname, my.proxy.port);
-    } else {
-      debug("%s:%d creating new socket:     %s:%d", __FILE__, __LINE__, U->hostname, U->port); 
-      C->sock = new_socket(C, U->hostname, U->port);
-    }
-  }
-
-  if (my.keepalive) {
-    C->connection.reuse = TRUE;
-  }
-
-  if (C->sock < 0) {
-    debug(
-      "%s:%d connection failed. error %d(%s)",__FILE__, __LINE__, errno,strerror(errno)
-    ); 
-    socket_close(C);
-    return FALSE;
-  } 
-
-  debug(
-    "%s:%d good socket connection:  %s:%d", 
-    __FILE__, __LINE__,
-    (my.proxy.required)?my.proxy.hostname:U->hostname,
-    (my.proxy.required)?my.proxy.port:U->port
-  ); 
-
-  if (C->prot == HTTPS) {
-    if (my.proxy.required) {
-      https_tunnel_request(C, U->hostname, U->port);
-      https_tunnel_response(C);
-    }
-    C->encrypt = TRUE;
-    if (SSL_initialize(C)==FALSE) {
-      return FALSE;
-    }
-  }
-
+  if (! __init_connection(C, U, client)) return FALSE;
+  
   /**
-   * write to socket with a POST or GET
+   * write to socket with a GET/POST/PUT/DELETE/HEAD
    */
-  if (U->calltype == URL_POST) { 
-    if ((http_post(C, U)) < 0) {
+  if (url_get_method(U) == GET || url_get_method(U) == HEAD) { 
+    if ((http_get(C, U)) == FALSE) {
       C->connection.reuse = 0;
       socket_close(C);
       return FALSE;
     }
   } else { 
-    if ((http_get(C, U)) < 0) {
+    if ((http_post(C, U)) == FALSE) {
       C->connection.reuse = 0;
       socket_close(C);
       return FALSE;
     }
   } 
+
   /**
    * read from socket and collect statistics.
    */
   if ((head = http_read_headers(C, U))==NULL) {
     C->connection.reuse = 0; 
     socket_close(C); 
-    debug("%s:%d NULL headers", __FILE__, __LINE__);
+    echo ("%s:%d NULL headers", __FILE__, __LINE__);
     return FALSE; 
-  }
+  } 
 
   bytes = http_read(C); 
 
@@ -325,7 +287,7 @@ http_request(CONN *C, URL *U, CLIENT *client)
     C->connection.reuse = 0; 
     socket_close(C); 
     http_free_headers(head); 
-    debug("%s:%d zero bytes back from server", __FILE__, __LINE__);
+    echo ("%s:%d zero bytes back from server", __FILE__, __LINE__);
     return FALSE; 
   } 
   stop     =  times(&t_stop); 
@@ -346,42 +308,47 @@ http_request(CONN *C, URL *U, CLIENT *client)
   /**
    * check to see if this transaction is the longest or shortest
    */
-  if (etime > highmark) {
-    highmark = etime;
+  if (etime > himark) {
+    himark = etime;
   }
-  if ((lowmark < 0) || (etime < lowmark)) {
-    lowmark = etime;
+  if ((lomark < 0) || (etime < lomark)) {
+    lomark = etime;
   }
-  client->bigtime = highmark;
-  client->smalltime = lowmark;
+  client->himark = himark;
+  client->lomark = lomark;
 
   /**
    * verbose output, print statistics to stdout
    */
   if ((my.verbose && !my.get) && (!my.debug)) {
+    int  color     = __select_color(head->code);
+    char *time_str = (my.timestamp==TRUE)?timestamp():"";
     if (my.csv) {
       if (my.display)
-        printf("%s%s%4d,%s,%d,%6.2f,%7lu,%s,%d,%s\n",
-        (my.mark)?my.markstr:"", (my.mark)?",":"", client->id, head->head, head->code, 
-        etime, bytes, (my.fullurl)?U->url:U->pathname, U->urlid, fmtime
+        DISPLAY(color, "%s%s%s%4d,%s,%d,%6.2f,%7lu,%s,%d,%s",
+        time_str, (my.mark)?my.markstr:"", (my.mark)?",":"", client->id, head->head, head->code, 
+        etime, bytes, url_get_display(U), url_get_ID(U), fmtime
       );
       else
-        printf("%s%s%s,%d,%6.2f,%7lu,%s,%d,%s\n",
-          (my.mark)?my.markstr:"", (my.mark)?",":"", head->head, head->code, 
-          etime, bytes, (my.fullurl)?U->url:U->pathname, U->urlid, fmtime
+        DISPLAY(color, "%s%s%s%s,%d,%6.2f,%7lu,%s,%d,%s",
+          time_str, (my.mark)?my.markstr:"", (my.mark)?",":"", head->head, head->code, 
+          etime, bytes, url_get_display(U), url_get_ID(U), fmtime
         );
     } else {
       if (my.display)
-        printf(
-          "%4d: %s %d %6.2f secs: %7lu bytes ==> %s\n", client->id,
-          head->head, head->code, etime, bytes, (my.fullurl)?U->url:U->pathname
+        DISPLAY(
+          color, "%s%4d: %s %d %6.2f secs: %7lu bytes ==> %-4s %s", client->id,
+          time_str, head->head, head->code, etime, bytes, url_get_method_name(U), 
+		  url_get_display(U)
         ); 
       else
-        printf ( 
-          "%s %d %6.2f secs: %7lu bytes ==> %s\n", 
-          head->head, head->code, etime, bytes, (my.fullurl)?U->url:U->pathname
+        DISPLAY ( 
+          color, "%s%s %d %6.2f secs: %7lu bytes ==> %-4s %s", 
+          time_str, head->head, head->code, etime, bytes, url_get_method_name(U), 
+		  url_get_display(U)
         );
     } /* else not my.csv */
+    if (my.timestamp) xfree(time_str);
   }
 
   /**
@@ -395,22 +362,35 @@ http_request(CONN *C, URL *U, CLIENT *client)
    * deal with HTTP > 300 
    */
   switch (head->code) {
-    URL  *redirect_url; /* URL in redirection request */
     case 301:
     case 302:
-      redirect_url = (URL*)xmalloc(sizeof(URL));
+    case 307:
       if (my.follow && head->redirect[0]) {
-        debug("%s:%d parse redirection URL %s", __FILE__, __LINE__, head->redirect);
-        if (protocol_length(head->redirect) == 0) {
-          memcpy(redirect_url, U, sizeof(URL));
-          redirect_url->pathname = head->redirect;
-        } else {
-          redirect_url = add_url(head->redirect, U->urlid);
+        /**  
+         * XXX: What if the server sends us
+         * Location: path/file.htm 
+         *  OR
+         * Location: /path/file.htm
+         */ 
+        redirect_url = __normalize(U, head->redirect); //new_url(head->redirect);
+
+        if (empty(url_get_hostname(redirect_url))) { 
+          url_set_hostname(redirect_url, url_get_hostname(U));
         }
-        if ((http_request(C, redirect_url, client)) == FALSE)
+        if (head->code == 307) {
+          url_set_conttype(redirect_url,url_get_conttype(U));
+          url_set_method(redirect_url, url_get_method(U));
+
+          if (url_get_method(redirect_url) == POST) {
+            url_set_postdata(redirect_url, url_get_postdata(U), url_get_postlen(U));
+          }
+        }
+        if ((__request(C, redirect_url, client)) == FALSE) {
+          redirect_url = url_destroy(redirect_url);
           return FALSE;
+        }
       }
-      xfree(redirect_url);
+      redirect_url = url_destroy(redirect_url);
       break;
     case 401:
       /**
@@ -418,19 +398,23 @@ http_request(CONN *C, URL *U, CLIENT *client)
        */
       client->auth.www = (client->auth.www==0)?1:client->auth.www;
       if ((client->auth.bids.www++) < my.bids - 1) {
+        BOOLEAN b;
         if (head->auth.type.www == DIGEST) {
           client->auth.type.www = DIGEST;
-	  if (set_digest_authorization(WWW, &(client->auth.wwwchlg), &(client->auth.wwwcred), &(client->rand_r_SEED), head->auth.realm.www, head->auth.challenge.www) < 0) {
-	    fprintf(stderr, "ERROR from set_digest_authorization\n");
+          b = auth_set_digest_header(
+            my.auth, &(client->auth.wchlg), &(client->auth.wcred), &(client->rand_r_SEED),
+            head->auth.realm.www, head->auth.challenge.www
+          );
+	  if (b == FALSE) {
+	    NOTIFY(ERROR, "unable to set digest header");
 	    return FALSE;
 	  }
-          break; 
         }
         if (head->auth.type.www == BASIC) {
           client->auth.type.www =  BASIC;
-          set_authorization(WWW, head->auth.realm.www);
+          auth_set_basic_header(my.auth, HTTP, head->auth.realm.www);
         }
-        if ((http_request(C, U, client)) == FALSE) {
+        if ((__request(C, U, client)) == FALSE) {
           fprintf(stderr, "ERROR from http_request\n");
           return FALSE;
         }
@@ -443,21 +427,26 @@ http_request(CONN *C, URL *U, CLIENT *client)
       client->auth.proxy = (client->auth.proxy==0)?1:client->auth.proxy;
       if ((client->auth.bids.proxy++) < my.bids - 1) {
         if (head->auth.type.proxy == DIGEST) {
+          BOOLEAN b;
           client->auth.type.proxy =  DIGEST;
-	  if (set_digest_authorization(PROXY, &(client->auth.proxychlg), &(client->auth.proxycred), &(client->rand_r_SEED), head->auth.realm.proxy, head->auth.challenge.proxy) < 0) {
-	    fprintf(stderr, "ERROR from set_digest_authorization\n");
+          b = auth_set_digest_header(
+            my.auth, &(client->auth.pchlg), &(client->auth.pcred), &(client->rand_r_SEED),
+            head->auth.realm.proxy, head->auth.challenge.proxy
+          );
+	  if (b == FALSE) {
+	    NOTIFY(ERROR, "unable to set digest header");
 	    return FALSE;
-	  } 
-          break;
+	  }
         }
         if (head->auth.type.proxy == BASIC) {
           client->auth.type.proxy = BASIC;
-          set_authorization(PROXY, head->auth.realm.proxy);
+          auth_set_basic_header(my.auth, PROXY, head->auth.realm.proxy);
         }
-        if ((http_request(C, U, client)) == FALSE)
+        if ((__request(C, U, client)) == FALSE)
           return FALSE;
       }
       break;
+    case 408:
     case 500:
     case 501:
     case 502:
@@ -476,6 +465,130 @@ http_request(CONN *C, URL *U, CLIENT *client)
   client->hits  ++; 
   http_free_headers(head);
 
+  return TRUE;
+}
+
+/**
+ * HTTP client request.
+ * The protocol is executed in http.c 
+ * This function invoked functions inside that module
+ * and it gathers statistics about the request. 
+ */
+private BOOLEAN
+__ftp(CONN *C, URL U, CLIENT *client)
+{
+  int     pass;
+  int     fail; 
+  int     code = 0;      // capture the relevent return code
+  float   etime;         // elapsed time
+  CONN    *D    = NULL;  // FTP data connection 
+  size_t  bytes = 0;     // bytes from server   
+  clock_t start, stop;
+  struct  tms t_start, t_stop; 
+
+  D = xcalloc(sizeof(CONN), 1);
+  D->sock = -1;
+
+  if (! __init_connection(C, U, client)) { 
+    NOTIFY (
+      ERROR, "%s:%d connection failed %s:%d",
+      __FILE__, __LINE__, url_get_hostname(U), url_get_port(U)
+    );
+    xfree(D);
+    return FALSE;
+  }
+
+  start = times(&t_start);
+  if (C->sock < 0) {
+    NOTIFY (
+      ERROR, "%s:%d connection failed %s:%d",
+      __FILE__, __LINE__, url_get_hostname(U), url_get_port(U)
+    );
+    socket_close(C);
+    xfree(D);
+    return FALSE;
+  } 
+
+  if (url_get_username(U) == NULL || strlen(url_get_username(U)) < 1) {
+    url_set_username(U, auth_get_ftp_username(my.auth, url_get_hostname(U)));
+  }
+
+  if (url_get_password(U) == NULL || strlen(url_get_password(U)) < 1) {
+    url_set_password(U, auth_get_ftp_password(my.auth, url_get_hostname(U)));
+  }
+
+  if (ftp_login(C, U) == FALSE) {
+    if (my.verbose) {
+      int  color = __select_color(C->ftp.code);
+      DISPLAY ( 
+        color, "FTP/%d %6.2f secs: %7lu bytes ==> %-6s %s", 
+        C->ftp.code, 0.0, bytes, url_get_method_name(U), url_get_request(U)
+      );
+    }
+    xfree(D);
+    client->fail += 1;
+    return FALSE;
+  }
+
+  ftp_pasv(C);
+  if (C->ftp.pasv == TRUE) {
+    debug("Connecting to: %s:%d", C->ftp.host, C->ftp.port);
+    D->sock = new_socket(D, C->ftp.host, C->ftp.port);
+    if (D->sock < 0) {
+      debug (
+        "%s:%d connection failed. error %d(%s)",__FILE__, __LINE__, errno,strerror(errno)
+      );
+      client->fail += 1;
+      socket_close(D);
+      xfree(D);
+      return FALSE;
+    }
+  }
+  if (url_get_method(U) == POST || url_get_method(U) == PUT) {
+    ftp_stor(C, U); 
+    bytes = ftp_put(D, U);
+    code  = C->ftp.code;
+  } else {
+    if (ftp_size(C, U) == TRUE) {
+      if (ftp_retr(C, U) == TRUE) {
+        bytes = ftp_get(D, U, C->ftp.size);
+      }
+    }
+    code = C->ftp.code;
+  }
+  socket_close(D);
+  ftp_quit(C);
+
+  pass  = (bytes == C->ftp.size) ? 1 : 0;
+  fail  = (pass  == 0) ? 1 : 0; 
+  stop  =  times(&t_stop);
+  etime =  elapsed_time(stop - start);
+  client->bytes += bytes;
+  client->time  += etime;
+  client->code  += pass;
+  client->fail  += fail;
+  
+  /**
+   * check to see if this transaction is the longest or shortest
+   */
+  if (etime > himark) {
+    himark = etime;
+  }
+  if ((lomark < 0) || (etime < lomark)) {
+    lomark = etime;
+  }
+  client->himark = himark;
+  client->lomark = lomark;
+ 
+  if (my.verbose) {
+    int  color = __select_color(code);
+    DISPLAY ( 
+      color, "FTP/%d %6.2f secs: %7lu bytes ==> %-6s %s", 
+      code, etime, bytes, url_get_method_name(U), url_get_request(U)
+    );
+  }
+  client->hits++; 
+  xfree(D);
   return TRUE;
 }
 
@@ -505,12 +618,182 @@ clean_up()
 }
 #endif
 
-private void
-increment_failures()
+private BOOLEAN 
+__init_connection(CONN *C, URL U, CLIENT *client)
 {
-  pthread_mutex_lock(&(my.lock));  
+  C->pos_ini              = 0;
+  C->inbuffer             = 0;
+  C->content.transfer     = NONE;
+  C->content.length       = 0;
+  C->connection.keepalive = (C->connection.max==1)?0:my.keepalive;
+  C->connection.reuse     = (C->connection.max==1)?0:my.keepalive;
+  C->connection.tested    = (C->connection.tested==0)?1:C->connection.tested;
+  C->auth.www             = client->auth.www;
+  C->auth.wchlg           = client->auth.wchlg;
+  C->auth.wcred           = client->auth.wcred;
+  C->auth.proxy           = client->auth.proxy;
+  C->auth.pchlg           = client->auth.pchlg;
+  C->auth.pcred           = client->auth.pcred;
+  C->auth.type.www        = client->auth.type.www;
+  C->auth.type.proxy      = client->auth.type.proxy;
+  memset(C->buffer, 0, sizeof(C->buffer));
+
+  debug (
+    "%s:%d attempting connection to %s:%d",
+    __FILE__, __LINE__,
+    (auth_get_proxy_required(my.auth))?auth_get_proxy_host(my.auth):url_get_hostname(U),
+    (auth_get_proxy_required(my.auth))?auth_get_proxy_port(my.auth):url_get_port(U)
+  );
+
+  if (!C->connection.reuse || C->connection.status == 0) {
+    if (auth_get_proxy_required(my.auth)) {
+      debug (
+        "%s:%d creating new socket:     %s:%d", 
+        __FILE__, __LINE__, auth_get_proxy_host(my.auth), auth_get_proxy_port(my.auth)
+      );
+      C->sock = new_socket(C, auth_get_proxy_host(my.auth), auth_get_proxy_port(my.auth));
+    } else {
+      debug (
+        "%s:%d creating new socket:     %s:%d", 
+        __FILE__, __LINE__, url_get_hostname(U), url_get_port(U)
+      );
+      C->sock = new_socket(C, url_get_hostname(U), url_get_port(U));
+    }
+  }
+
+  if (my.keepalive) {
+    C->connection.reuse = TRUE;
+  }
+
+  if (C->sock < 0) {
+    debug (
+      "%s:%d connection failed. error %d(%s)",__FILE__, __LINE__, errno,strerror(errno)
+    );
+    socket_close(C);
+    return FALSE;
+  }
+
+  debug (
+    "%s:%d good socket connection:  %s:%d",
+    __FILE__, __LINE__,
+    (auth_get_proxy_required(my.auth))?auth_get_proxy_host(my.auth):url_get_hostname(U),
+    (auth_get_proxy_required(my.auth))?auth_get_proxy_port(my.auth):url_get_port(U)
+  );
+
+  if (C->encrypt == TRUE) {
+    if (auth_get_proxy_required(my.auth)) {
+      https_tunnel_request(C, url_get_hostname(U), url_get_port(U));
+      https_tunnel_response(C);
+    }
+    C->encrypt = TRUE;
+    if (SSL_initialize(C)==FALSE) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
+private void
+__increment_failures()
+{
+  pthread_mutex_lock(&(my.lock));
   my.failed++;
-  pthread_mutex_unlock(&(my.lock));  
+  pthread_mutex_unlock(&(my.lock));
   pthread_testcancel();
+}
+
+
+private int 
+__select_color(int code) 
+{
+  switch(code) {
+    case 150:
+    case 200:
+    case 201:
+    case 202:
+    case 203:
+    case 204:
+    case 205:
+    case 206:
+    case 226:
+      return BLUE;
+    case 300:
+    case 301:
+    case 302:
+    case 303:
+    case 304:
+    case 305:
+    case 306:
+    case 307:
+      return CYAN;
+    case 400: 
+    case 401: 
+    case 402: 
+    case 403: 
+    case 404: 
+    case 405: 
+    case 406: 
+    case 407: 
+    case 408: 
+    case 409: 
+    case 410: 
+    case 411: 
+    case 412: 
+    case 413: 
+    case 414: 
+    case 415: 
+    case 416: 
+    case 417: 
+      return MAGENTA;
+    case 500:
+    case 501:
+    case 502:
+    case 503:
+    case 504:
+    case 505:
+    default: // WTF?
+      return RED;
+  }
+  return RED;
+}
+
+private URL
+__normalize(URL req, char *location)
+{
+  URL    ret;
+  char * url;
+  size_t len = strlen(url_get_absolute(req)) + strlen(location) + 32;
+  if (strchr(location, ':') != NULL) {
+    // it's very likely normalized
+    ret = new_url(location);
+    // but we better test it...
+    if (strchr(url_get_hostname(ret), '.') != NULL) {
+      return ret;
+    }
+  }
+  if (strchr(location, '.') != NULL) {
+    // it's *maybe* host/path
+    ret = new_url(location);
+    // so we better test it...
+    if (strchr(url_get_hostname(ret), '.') != NULL) {
+      return ret;
+    }
+    // XXX: do I really need to test for localhost?
+  }
+
+  /**
+   * If we got this far we better construct it...
+   */
+  url = (char*)malloc(len);
+  memset(url, '\0', len);
+
+  if (location[0] == '/') {
+    snprintf(url, len, "%s://%s:%d%s", url_get_scheme_name(req), url_get_hostname(req), url_get_port(req), location);
+  } else {
+    snprintf(url, len, "%s://%s:%d/%s", url_get_scheme_name(req), url_get_hostname(req), url_get_port(req), location);
+  }
+  ret = new_url(url);
+  free(url);
+  return ret;
 }
 
