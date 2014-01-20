@@ -490,9 +490,26 @@ http_read_headers(CONN *C, URL U)
     }
     if (strncasecmp(line, "location: ", 10) == 0) {
       size_t len  = strlen(line);
-      h->redirect = xmalloc(len);
-      memcpy(h->redirect, line+10, len-10);
-      h->redirect[len-10] = 0;
+      char *path = url_get_path(U);
+      if (line[10] != '/' && strncmp(line + 10, "http://", 7) != 0 &&
+              strncmp(line + 10, "https://", 8) != 0 && path && path[0] == '/') {
+        char *sep = strrchr(path, '/');
+        if (sep) {
+          size_t prefix_len = sep - path + 1;
+          h->redirect = xmalloc(prefix_len + len);
+          memcpy(h->redirect, path, prefix_len);
+          memcpy(h->redirect + prefix_len, line+10, len-10);
+          h->redirect[prefix_len + len-10] = 0;
+        } else {
+          h->redirect = xmalloc(len);
+          memcpy(h->redirect, line+10, len-10);
+          h->redirect[len-10] = 0;
+        }
+      } else {
+        h->redirect = xmalloc(len);
+        memcpy(h->redirect, line+10, len-10);
+        h->redirect[len-10] = 0;
+      }
     }
     if (strncasecmp(line, "last-modified: ", 15) == 0) {
       char *date;
