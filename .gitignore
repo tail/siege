@@ -20,3 +20,6 @@ libtool
 utils/bombardment
 utils/siege.config
 utils/siege2csv.pl
+.libs
+*.la
+siege
