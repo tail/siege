@@ -287,7 +287,7 @@ $rm conftest*
 # If we don't find anything, use the default library path according
 # to the aix ld manual.
 AC_DEFUN([_LT_AC_SYS_LIBPATH_AIX],
-[AC_LINK_IFELSE(AC_LANG_PROGRAM,[
+[AC_LINK_IFELSE([AC_LANG_PROGRAM],[
 aix_libpath=`dump -H conftest$ac_exeext 2>/dev/null | $SED -n -e '/Import File Strings/,/^$/ { /^0/ { s/^0  *\(.*\)$/\1/; p; }
 }'`
 # Check for a 64-bit object if we didn't find anything.
@@ -5325,7 +5325,7 @@ AC_MSG_RESULT([$_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)])
 #
 if test -n "$_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)"; then
   AC_LIBTOOL_COMPILER_OPTION([if $compiler PIC flag $_LT_AC_TAGVAR(lt_prog_compiler_pic, $1) works],
-    _LT_AC_TAGVAR(lt_prog_compiler_pic_works, $1),
+    _LT_AC_TAGVAR(lt_cv_prog_compiler_pic_works, $1),
     [$_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)ifelse([$1],[],[ -DPIC],[ifelse([$1],[CXX],[ -DPIC],[])])], [],
     [case $_LT_AC_TAGVAR(lt_prog_compiler_pic, $1) in
      "" | " "*) ;;
@@ -5349,7 +5349,7 @@ esac
 #
 wl=$_LT_AC_TAGVAR(lt_prog_compiler_wl, $1) eval lt_tmp_static_flag=\"$_LT_AC_TAGVAR(lt_prog_compiler_static, $1)\"
 AC_LIBTOOL_LINKER_OPTION([if $compiler static flag $lt_tmp_static_flag works],
-  _LT_AC_TAGVAR(lt_prog_compiler_static_works, $1),
+  _LT_AC_TAGVAR(lt_cv_prog_compiler_static_works, $1),
   $lt_tmp_static_flag,
   [],
   [_LT_AC_TAGVAR(lt_prog_compiler_static, $1)=])

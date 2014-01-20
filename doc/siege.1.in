@@ -44,8 +44,11 @@ CONFIGURATION, prints the current configuration in the $HOME/.siegerc file.  Edi
 \fB\-v\fR, \fB\-\-verbose\fR
 VERBOSE, prints the HTTP return status and the GET request to  the  screen.   Useful when reading  a series of  URLs  from  a configuration file.  This flag allows you to  witness  the  progress  of  the test.
 .TP
+\fB\-q\fR, \fB\-\-quiet\fR
+QUIET turns off verbose and suppresses most output. This option was added primarily for scripting with \-g/\-\-get. If you run a full siege in quiet mode, you'll still get the opening introduction and the final stats.
+.TP
 \fB\-g\fR, \fB\-\-get\fR
-GET, pull down HTTP headers and display the transaction. Great for web server configuration debugging. Requires a URL be passed to siege on the command line. 
+GET HTTP headers and display the transaction. Siege exits 1 if the transaction doesn't contain at least one HTTP 200 response, otherwise it exits 0. You can limit the transaction to just the headers by setting gmethod=HEAD in $HOME/.siegerc
 .TP
 \fB\-c NUM\fR, \fB\-\-concurrent=NUM\fR
 CONCURRENT, allows you to set the concurrent number of simulated users to num. The number of simulated users is limited to the resources on the computer running siege.
@@ -80,7 +83,7 @@ RC, sets the siegerc file for the run. This option overrides the environment var
 \fB\-f FILE\fR, \fB\-\-file=FILE\fR
 FILE, the default URL file is SIEGE_HOME/etc/urls.txt.  To select a different URL file, use this  option,  i.e.,   siege \-f myurls.txt
 .TP
-\fB\-A "User Agent"\fR, \fB\-\-user-agent="User Agent"\fR
+\fB\-A "User Agent"\fR, \fB\-\-user\-agent="User Agent"\fR
 AGENT, use this option to set the User-Agent in the request.
 .SH URL FORMAT
 Siege understands the following URL formats: \fR
@@ -122,9 +125,9 @@ http://homer.whoohoo.com/index.html\fR
 .br
 http://homer.whoohoo.com/howto.jsp\fR 
 .br
-http://go.whoohoo.com/cgi-bin/q.cgi?scope=a\fR
+http://go.whoohoo.com/cgi\-bin/q.cgi?scope=a\fR
 .br
-http://go.whoohoo.com/cgi-bin/q.cgi POST scope=a\fR
+http://go.whoohoo.com/cgi\-bin/q.cgi POST scope=a\fR
 .br
 http://homer.whoohoo.com/my.jsp POST a=1&b=2\fR
 .br

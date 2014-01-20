@@ -16,9 +16,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * 
  */
 #include <util.h>
@@ -39,17 +39,23 @@ substring(char *str, int start, int len)
   char  *ptr;
   char  *end;
 
-  if ((len < 1) || (start < 0) || (start > (int)strlen (str)) || start+len > (int)strlen(str))
+//  if ((len < 1) || (start < 0) || (start > (int)strlen (str)) || start+len > (int)strlen(str))
+//    return NULL;
+
+  if ((len < 1) || (start < 0) || (start > (int)strlen (str)))
     return NULL;
+
+  if (start+len > (int)strlen(str)) 
+    len = strlen(str) - start;
 
   ret = xmalloc(len+1);
   res = ret;
   ptr = str;
   end = str;
 
-  for(i = 0; i < start; i++, *ptr++) ;
-  for(i = 0; i < start+len; i++, *end++) ;
-  while(ptr < end)
+  for (i = 0; i < start; i++, ptr++) ;
+  for (i = 0; i < start+len; i++, end++) ;
+  while (ptr < end)
     *res++ = *ptr++;
 
   *res = 0;

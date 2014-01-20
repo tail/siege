@@ -12,12 +12,11 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA. 
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation, Inc.
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-   $Id: getopt.h,v 1.1.1.1 2006/04/17 18:37:34 jdfulmer Exp $
+   $Id: getopt.h,v 1.2 2013/08/19 14:07:45 jdfulmer Exp $
 */  
 
 #ifndef _GETOPT_H

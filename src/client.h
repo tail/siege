@@ -1,8 +1,8 @@
 /**
  * Client Header
  *
- * Copyright (C) 2000, 2001, 2002 by
- * Jeffrey Fulmer - <jdfulmer@armstrong.com>
+ * Copyright (C) 2013 by
+ * Jeffrey Fulmer, et al - <jeff@joedog.org>
  * This file is distributed as part of Siege 
  *
  * This program is free software; you can redistribute it and/or modify
@@ -15,9 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 #ifndef CLIENT_H
@@ -38,7 +38,6 @@
 
 #include <auth.h>
 
-
 struct trans
 {
   int   bytes;
@@ -57,13 +56,13 @@ typedef struct
   unsigned int   code;
   unsigned int   fail;
   unsigned int   ok200;
-  URL    **U;
+  ARRAY  urls;
   struct {
-    DIGEST_CHLG *wwwchlg;
-    DIGEST_CRED *wwwcred;
-    int  www;
-    DIGEST_CHLG *proxychlg;
-    DIGEST_CRED *proxycred;
+    DCHLG *wchlg;
+    DCRED *wcred;
+    int    www;
+    DCHLG *pchlg;
+    DCRED *pcred;
     int  proxy;
     struct {
       int  www;
@@ -77,8 +76,8 @@ typedef struct
   int      status;
   float    time;
   unsigned int rand_r_SEED;
-  float bigtime;
-  float smalltime;
+  float himark;
+  float lomark;
 } CLIENT;
 
 void * start_routine(CLIENT *client);

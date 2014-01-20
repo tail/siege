@@ -28,5 +28,6 @@
 time_t adjust(time_t tvalue, int secs);
 time_t strtotime(const char *string);
 char * timetostr(const time_t *T);
+char * timestamp();
 
 #endif/*DATE_H*/

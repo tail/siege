@@ -2,7 +2,7 @@
  * Error notification
  * Library: joedog
  *
- * Copyright (C) 2000-2007 by
+ * Copyright (C) 2000-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et. al.
  * This file is distributed as part of Siege 
  *
@@ -16,9 +16,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *  
  */
 
@@ -34,7 +34,7 @@
 #include <errno.h>
 #include <notify.h>
 
-#define BUFSIZE 4096
+#define BUFSIZE 40000
 
 #define RESET      0
 #define BRIGHT     1
@@ -77,8 +77,8 @@ CLOSELOG(void)
 static void
 __message(METHOD M, LEVEL L, const char *fmt, va_list ap)
 {
-  char   buf[BUFSIZE/2];
-  char   msg[BUFSIZE];
+  char   buf[BUFSIZE];
+  char   msg[BUFSIZE+1024];
   LEVEL  level = WARNING;
   char   pmode[64];
   char   lmode[64];
@@ -86,13 +86,13 @@ __message(METHOD M, LEVEL L, const char *fmt, va_list ap)
   memset(pmode, '\0', 64);
 
   vsprintf(buf, fmt, ap);
-  if(errno == 0 || errno == ENOSYS || L == DEBUG){
+  if (errno == 0 || errno == ENOSYS || L == DEBUG) {
     snprintf(msg, sizeof msg, "%s\n", buf);
   } else {
     snprintf(msg, sizeof msg, "%s: %s\n", buf, strerror(errno));
   }
 
-  switch(L){
+  switch (L) {
     case DEBUG:
       sprintf(pmode, "[%c[%d;%dmdebug%c[%dm]", 0x1B, BRIGHT, BLUE+30, 0x1B, RESET);
       strcpy(lmode, "[debug]");
@@ -115,13 +115,13 @@ __message(METHOD M, LEVEL L, const char *fmt, va_list ap)
       break;
   }
   
-  if(M == __LOG){
+  if (M == __LOG) {
     syslog(level, "%s %s", lmode, msg);
   } else {
     fflush(stdout);
     fprintf(stderr, "%s %s", pmode, msg);
   }
-  if(L==FATAL){ exit(1); }
+  if (L==FATAL) { exit(1); }
   return;
 }
 
@@ -149,4 +149,25 @@ NOTIFY(LEVEL L, const char *fmt, ...)
   return;
 }
 
+void
+__display(int color, const char *fmt, va_list ap) 
+{
+  char   buf[BUFSIZE];
+  char   msg[BUFSIZE+1024];
+
+  vsprintf(buf, fmt, ap);
+  snprintf(msg, sizeof msg, "%c[%d;%dm%s%c[%dm\n", 0x1B, RESET, color+30, buf, 0x1B, RESET);
+  printf("%s", msg);
+  return;
+}
+
+void 
+DISPLAY(int color, const char *fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  __display(color, fmt, ap);
+  va_end(ap);
+  return;
+}
 

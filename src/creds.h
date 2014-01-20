@@ -1,10 +1,9 @@
 /**
- * Stralloc
- * Library: joedog
- * 
- * Copyright (C) 2000-2007 by
- * Jeffrey Fulmer - <jeff@joedog.org>
- * This file is distributed as part of Siege 
+ * HTTP authentication credentials
+ *
+ * Copyright (C) 2000-2013 by
+ * Jeffrey Fulmer - <jeff@joedog.org>, et al.
+ * This file is distributed as part of Siege
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +18,25 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *--
  */
-#ifndef STRALLOC_H
-#define STRALLOC_H
+#ifndef __CREDS_H
+#define __CREDS_H
 
-char *stralloc(char *);  
+#include <url.h>
 
-#endif/*STRALLOC_H*/
+typedef struct CREDS_T *CREDS;
+extern  size_t CREDSIZE;
+
+CREDS  new_creds(SCHEME scheme, char *str);
+CREDS  creds_destroy(CREDS this);
+SCHEME creds_get_scheme(CREDS this);
+char  *creds_get_username(CREDS this);
+char  *creds_get_password(CREDS this);
+char  *creds_get_realm(CREDS this);
+void   creds_set_username(CREDS this, char *username);
+void   creds_set_password(CREDS this, char *password);
+void   creds_set_realm(CREDS this, char *realm);
+
+#endif/*__CREDS*/
+

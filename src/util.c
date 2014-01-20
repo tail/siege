@@ -15,16 +15,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * --
- *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *--
  */
 #include <setup.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <joedog/boolean.h>
 #include <joedog/defs.h>
 
@@ -69,6 +69,13 @@ parse_time(char *p)
 
   return;
 }
+
+BOOLEAN
+okay(int code)
+{
+  return (code >= 100 && code <= 299);
+}
+
 
 BOOLEAN
 strmatch(char *option, char *param)
@@ -164,19 +171,60 @@ pthread_usleep_np(unsigned long usec)
 }
 
 void
-debug(const char *fmt, ...)
+echo (const char *fmt, ...)
 {
   char    buf[256];
   va_list ap;
 
-  if(my.debug){
+  if (my.quiet) {
+    return;
+  }
+
+  if (my.get) {
     va_start(ap, fmt);
     vsnprintf(buf, sizeof buf, fmt, ap);
-    NOTIFY(DEBUG, buf);
+    printf("%s", buf); // yes, that's ugly...
+    va_end(ap);
+    fflush(stdout);
+    return;
+  }
+
+  if (my.debug) {
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof buf, fmt, ap);
+    if (strlen(buf) == 1) {
+      printf("%s", buf);
+    } else {
+      NOTIFY(DEBUG, buf);
+    }
     va_end(ap);
   }
   return;
 }
+
+void
+debug (const char *fmt, ...)
+{
+  char    buf[256];
+  va_list ap;
+
+  if (my.quiet) {
+    return;
+  }
+
+  if (my.debug) {
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof buf, fmt, ap);
+    if (strlen(buf) == 1) {
+      printf("%s", buf);
+    } else {
+      NOTIFY(DEBUG, buf);
+    }
+    va_end(ap);
+  }
+  return;
+}
+
 
 /*-
  * Copyright (c) 1990, 1993
@@ -237,6 +285,26 @@ pthread_rand_np(unsigned int *ctx)
 #endif
 }
 
+int
+urandom()
+{
+#ifdef HAVE_DEV_RANDOM
+  int  rand = -1;
+  int  fd;
+
+  if ((fd = open("/dev/urandom", O_RDONLY)) >= 0) {
+    read(fd, &rand, sizeof(rand));
+    close(fd);
+  }
+  return rand;
+#else 
+  unsigned int randrseed;
+
+  randrseed = time(0);
+  return pthread_rand_np(&randrseed);
+#endif
+}
+
 #ifndef strnlen
 size_t
 strnlen(const char *str, size_t len)
@@ -253,6 +321,10 @@ strncasestr(const char *str1, const char *str2, size_t len)
   size_t str1_len = strnlen(str1, len);
   size_t str2_len = strlen(str2);
   size_t i;
+
+  if (str1_len < 1 || str2_len < 1) {
+    return NULL;
+  } 
 
   for(i = 0; i < (str1_len - str2_len + 1); i++){
     if(strncasecmp(str1, str2, str2_len) == 0){

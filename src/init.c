@@ -1,7 +1,7 @@
 /**
  * Siege environment initialization.
  *
- * Copyright (C) 2000-2010 by
+ * Copyright (C) 2000-2013 by
  * Jeffrey Fulmer - <jeff@joedog.org>, et al. 
  * This file is distributed as part of Siege 
  *
@@ -15,10 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */  
 #include <init.h>
 #include <setup.h>
@@ -48,7 +47,7 @@ init_config( void )
    * use default of ~/.siegerc */
   if(strcmp(my.rc, "") == 0){
     if((e = getenv("SIEGERC")) != NULL){
-      snprintf(my.rc, sizeof(my.rc), e);
+      snprintf(my.rc, sizeof(my.rc), "%s", e);
     } else {
       snprintf(my.rc, sizeof(my.rc), "%s/.siegerc", getenv("HOME"));
       if (stat(my.rc, &buf) < 0 && errno == ENOENT) {
@@ -58,23 +57,26 @@ init_config( void )
   } 
 
   my.debug          = FALSE;
+  my.quiet          = FALSE;
   my.internet       = FALSE;
   my.config         = FALSE;
   my.cookies        = TRUE;
   my.csv            = FALSE;
   my.fullurl        = FALSE;
+  my.escape         = TRUE;
   my.secs           = -1;
   my.reps           = MAXREPS; 
   my.bids           = 5;
   my.login          = FALSE;
   my.failures       = 1024;
   my.failed         = 0;
-  my.auth.encode    = xstrdup("");
-  my.proxy.encode   = xstrdup("");
-  my.proxy.required = FALSE;
-  my.proxy.port     = 80; 
+  my.auth           = new_auth();
+  auth_set_proxy_required(my.auth, FALSE);
+  auth_set_proxy_port(my.auth, 3128);
   my.timeout        = 30;
+  my.timestamp      = FALSE;
   my.chunked        = FALSE;
+  my.unique         = TRUE;
   my.extra[0]       = 0;
   my.follow         = TRUE;
   my.zero_ok        = TRUE; 
@@ -90,7 +92,7 @@ init_config( void )
   if((res = pthread_cond_init(&(my.cond), NULL )) != 0)
     NOTIFY(FATAL, "unable to initiate condition");
 
-  if(load_conf(my.rc) < 0){
+  if (load_conf(my.rc) < 0) {
     fprintf( stderr, "****************************************************\n" );
     fprintf( stderr, "siege: could not open %s\n", my.rc );
     fprintf( stderr, "run \'siege.config\' to generate a new .siegerc file\n" );
@@ -98,56 +100,65 @@ init_config( void )
     return -1;
   }
   
-  if(strlen(my.file) < 1){ 
-    strcpy( my.file, SIEGE_HOME );
-    strcat( my.file, "/etc/urls.txt" );
+  if (strlen(my.file) < 1) { 
+    snprintf(
+      my.file, sizeof( my.file ),
+      "%s", URL_FILE
+    );
   }
 
-  if(strlen(my.uagent) < 1) 
+  if (strlen(my.uagent) < 1) 
     snprintf( 
       my.uagent, sizeof(my.uagent),
-      "JoeDog/1.00 [en] (X11; I; Siege %s)", version_string 
+      "Mozilla/5.0 (%s) Siege/%s", PLATFORM, version_string 
     );
 
-  if(strlen(my.encoding) < 1)
+  if (strlen(my.conttype) < 1) 
+    snprintf( 
+      my.conttype, sizeof(my.conttype),
+      "application/x-www-form-urlencoded"
+    );
+
+  if (strlen(my.encoding) < 1)
     snprintf(
       my.encoding, sizeof(my.encoding), "*"
     );
 
-  if(strlen(my.logfile) < 1) 
+  if (strlen(my.logfile) < 1) 
     snprintf( 
       my.logfile, sizeof( my.logfile ),
       "%s", LOG_FILE 
     );
-  /**
-   * DEPRECATED!! username and password are being
-   * phased out in favor of my.auth.head
-   */
-  if(( my.username && strlen(my.username) > 0 ) &&
-    (  my.password && strlen(my.password) > 0 )){
-    add_authorization(WWW, my.username, my.password, "all"); 
-  }
-  if(my.proxy.hostname && strlen(my.proxy.hostname) > 0){
-    my.proxy.required = TRUE;
-  } 
-
   return 0;  
 }
 
 int
-show_config( int EXIT )
+show_config(int EXIT)
 {
+  char *method;
+  switch (my.method) {
+    case GET:
+      method = strdup("GET");
+      break;
+    case HEAD:
+    default: 
+      method = strdup("HEAD");
+      break;
+  }
+  
   printf( "CURRENT  SIEGE  CONFIGURATION\n" );
   printf( "%s\n", my.uagent ); 
   printf( "Edit the resource file to change the settings.\n" );
   printf( "----------------------------------------------\n" );
   printf( "version:                        %s\n", version_string );
   printf( "verbose:                        %s\n", my.verbose?"true":"false" );
+  printf( "quiet:                          %s\n", my.quiet?"true":"false" );
   printf( "debug:                          %s\n", my.debug?"true":"false" );
   printf( "protocol:                       %s\n", my.protocol?"HTTP/1.1":"HTTP/1.0" );
-  if(my.proxy.required){
-    printf("proxy-host:                     %s\n", my.proxy.hostname);
-    printf("proxy-port:                     %d\n", my.proxy.port);
+  printf( "get method:                     %s\n", method);
+  if (auth_get_proxy_required(my.auth)){
+    printf("proxy-host:                     %s\n", auth_get_proxy_host(my.auth));
+    printf("proxy-port:                     %d\n", auth_get_proxy_port(my.auth));
   }
   printf( "connection:                     %s\n", my.keepalive?"keep-alive":"close" );
   printf( "concurrent users:               %d\n", my.cusers );
@@ -160,6 +171,7 @@ show_config( int EXIT )
   else
     printf( "repetitions:                    n/a\n" );
   printf( "socket timeout:                 %d\n", my.timeout );
+  printf( "accept-encoding:                %s\n", my.encoding);
   printf( "delay:                          %d sec%s\n", my.delay,my.delay>1?"s":"" );
   printf( "internet simulation:            %s\n", my.internet?"true":"false"  );
   printf( "benchmark mode:                 %s\n", my.bench?"true":"false"  );
@@ -169,19 +181,22 @@ show_config( int EXIT )
   printf( "logging:                        %s\n", my.logging?"true":"false" );
   printf( "log file:                       %s\n", my.logfile==NULL?LOG_FILE:my.logfile );
   printf( "resource file:                  %s\n", my.rc);
+  printf( "timestamped output:             %s\n", my.timestamp?"true":"false");
+  printf( "comma separated output:         %s\n", my.csv?"true":"false");
   printf( "allow redirects:                %s\n", my.follow?"true":"false" );
   printf( "allow zero byte data:           %s\n", my.zero_ok?"true":"false" ); 
   printf( "allow chunked encoding:         %s\n", my.chunked?"true":"false" ); 
-  printf( "proxy auth:                     " ); display_authorization( PROXY );printf( "\n" );
-  printf( "www auth:                       " ); display_authorization( WWW ); 
+  printf( "upload unique files:            %s\n", my.unique?"true":"false" ); 
+  //printf( "proxy auth:                     " ); display_authorization( PROXY );printf( "\n" );
+  //printf( "www auth:                       " ); display_authorization( WWW ); 
   printf( "\n" );
-
+  xfree(method);
   if (EXIT) exit(0);
   else return 0;
 }
 
-static char
-*get_line(FILE *fp)
+static char *
+get_line(FILE *fp)
 {
   char *ptr = NULL;
   char *newline;
@@ -203,8 +218,8 @@ static char
   return ptr;
 } 
 
-static char
-*chomp_line(FILE *fp, char **mystr, int *line_num)
+static char *
+chomp_line(FILE *fp, char **mystr, int *line_num)
 {
   char *ptr;
   while(TRUE){
@@ -236,268 +251,278 @@ load_conf(char *filename)
     return -1;
   } 
 
-  H = new_hash(16);
+  H = new_hash();
 
-  while((line = chomp_line(fp, &line, &line_num)) != NULL){
-    tmp    = line;
+  while ((line = chomp_line(fp, &line, &line_num)) != NULL) {
+    tmp = trim(line);
     optionptr = option = xstrdup(line);
-    while(*optionptr && !ISSPACE((int)*optionptr) && !ISSEPARATOR(*optionptr))
+    while (*optionptr && !ISSPACE((int)*optionptr) && !ISSEPARATOR(*optionptr)) {
       optionptr++;
+    }
     *optionptr++=0;
-    while(ISSPACE((int)*optionptr) || ISSEPARATOR(*optionptr))
+    while (ISSPACE((int)*optionptr) || ISSEPARATOR(*optionptr)) {
       optionptr++;
-    value  = xstrdup(optionptr);
-    while(*line)
+    }
+    value = xstrdup(optionptr);
+    while (*line)
       line++;  
-    while(strstr(option, "$")){
+    while (strstr(option, "$")) {
       option = evaluate(H, option);
     }
-    while(strstr(value, "$")){
+    while (strstr(value, "$")){
       value = evaluate(H, value);
     } 
-    if(strmatch(option, "verbose")){
-      if(!strncasecmp(value, "true", 4))
+    if (strmatch(option, "verbose")) {
+      if (!strncasecmp(value, "true", 4))
         my.verbose = TRUE;
       else
         my.verbose = FALSE;
     } 
-    else if(strmatch(option, "csv")){
-      if(!strncasecmp(value, "true", 4))
+    else if (strmatch(option, "quiet")) {
+      if (!strncasecmp(value, "true", 4))
+        my.quiet = TRUE;
+      else
+        my.quiet = FALSE;
+    } 
+    else if (strmatch(option, "csv")) {
+      if (!strncasecmp(value, "true", 4))
         my.csv = TRUE;
       else
         my.csv = FALSE;
     } 
-    else if(strmatch(option, "fullurl")){
-      if(!strncasecmp(value, "true", 4))
+    else if (strmatch(option, "fullurl")) {
+      if (!strncasecmp(value, "true", 4))
         my.fullurl = TRUE;
       else
         my.fullurl = FALSE;
     } 
-    else if(strmatch(option, "display-id")){
-      if(!strncasecmp(value, "true", 4))
+    else if (strmatch(option, "display-id")) {
+      if (!strncasecmp(value, "true", 4))
         my.display = TRUE;
       else
         my.display = FALSE;
     } 
-    else if(strmatch( option, "logging")){
-      if(!strncasecmp( value, "true", 4))
+    else if (strmatch( option, "logging")) {
+      if (!strncasecmp( value, "true", 4))
         my.logging = TRUE;
       else
         my.logging = FALSE;
     }
-    else if(strmatch(option, "show-logfile")){
-      if(!strncasecmp(value, "true", 4))
+    else if (strmatch(option, "show-logfile")) {
+      if (!strncasecmp(value, "true", 4))
         my.shlog = TRUE;
       else
         my.shlog = FALSE;
     }
-    else if(strmatch(option, "logfile")){
+    else if (strmatch(option, "logfile")) {
       strncpy(my.logfile, value, sizeof(my.logfile)); 
     } 
-    else if(strmatch(option, "cookies")){
-      if(strmatch(value, "true"))
+    else if (strmatch(option, "cookies")) {
+      if (strmatch(value, "true"))
         my.cookies = TRUE;
       else
         my.cookies = FALSE;
     }
-    else if(strmatch(option, "concurrent")){
-      if(value != NULL){
+    else if (strmatch(option, "concurrent")) {
+      if (value != NULL) {
         my.cusers = atoi(value);
       } else {
         my.cusers = 10;
       }
     } 
-    else if(strmatch(option, "reps")){
-      if(value != NULL){
+    else if (strmatch(option, "reps")) {
+      if (value != NULL) {
         my.reps = atoi(value);
       } else {
         my.reps = 5;
       }
     }
-    else if(strmatch(option, "time")){
+    else if (strmatch(option, "time")) {
       parse_time(value);
     }
-    else if(strmatch(option, "delay")){
-      if(value != NULL){
+    else if (strmatch(option, "delay")) {
+      if (value != NULL) {
         my.delay = atoi(value);
       } else {
         my.delay = 1;
       }
     }
-    else if(strmatch(option, "timeout")){
-      if(value != NULL){
+    else if (strmatch(option, "timeout")) {
+      if (value != NULL) {
         my.timeout = atoi(value);
       } else {
         my.timeout = 15;
       }
     }
-    else if(strmatch(option, "internet")){
-      if(!strncasecmp(value, "true", 4))
+    else if (strmatch(option, "timestamp")) {
+      if (!strncasecmp(value, "true", 4)) 
+        my.timestamp = TRUE;
+      else
+        my.timestamp = FALSE;
+    }
+    else if (strmatch(option, "internet")) {
+      if (!strncasecmp(value, "true", 4))
         my.internet = TRUE;
       else
         my.internet = FALSE;
     }
-    else if(strmatch(option, "benchmark")){
-      if(!strncasecmp(value, "true", 4)) 
+    else if (strmatch(option, "benchmark")) {
+      if (!strncasecmp(value, "true", 4)) 
         my.bench = TRUE;
       else
         my.bench = FALSE;
     }
-    else if(strmatch(option, "cache")){
-      if(!strncasecmp(value, "true", 4)) 
+    else if (strmatch(option, "cache")) {
+      if (!strncasecmp(value, "true", 4)) 
         my.cache = TRUE;
       else
         my.cache = FALSE;
     }
-    else if(strmatch( option, "debug")){
-      if(!strncasecmp( value, "true", 4))
+    else if (strmatch( option, "debug")) {
+      if (!strncasecmp( value, "true", 4))
         my.debug = TRUE;
       else
         my.debug = FALSE;
     }
-    else if(strmatch(option, "file")){
+    else if (strmatch(option, "gmethod")) {
+      if (strmatch(value, "GET")) {
+        my.method = GET; 
+      } else {
+        my.method = HEAD; 
+      } 
+    }
+    else if (strmatch(option, "file")) {
       memset(my.file, 0, sizeof(my.file));
       strncpy(my.file, value, sizeof(my.file));
     }
-    else if(strmatch(option, "url")){
+    else if (strmatch(option, "url")) {
       my.url = stralloc(value);
     }
-    else if(strmatch(option, "user-agent")){
+    else if (strmatch(option, "user-agent")) {
       strncpy(my.uagent, value, sizeof(my.uagent));
     }
-    else if(strmatch(option, "accept-encoding")){
+    else if (strmatch(option, "accept-encoding")) {
       strncpy(my.encoding, value, sizeof(my.encoding));
     }
-    else if(!strncasecmp(option, "login", 5)){
+    #if 1
+    else if (!strncasecmp(option, "login", 5)) {
       if(strmatch(option, "login-url")){  
-        /* login URL */
-        // XXX: my.loginurl = stralloc(value); 
         my.login = TRUE;
         array_push(my.lurl, value);
       } else {
         /* user login info */
-        char *usr, *pwd, *rlm, *tmpvalue;
-        usr = tmpvalue = value;
-        while( *tmpvalue && *tmpvalue != ':' && *tmpvalue != '\0' )
-          tmpvalue++;
-        *tmpvalue++=0; pwd = tmpvalue;
-        while( *tmpvalue && *tmpvalue != ':' && *tmpvalue != '\0' )
-	  tmpvalue++;
-	if('\0' != *tmpvalue) {
-	  *tmpvalue++=0;
-	  rlm = tmpvalue;
-	} else {
-	  rlm = NULL;
-	}
-        add_authorization(WWW, usr, pwd, rlm);
+        auth_add(my.auth, new_creds(HTTP, value));
       }
     }
-    else if(strmatch(option, "attempts")){
-      if(value != NULL){
+    #endif 
+    else if (strmatch(option, "attempts")) {
+      if (value != NULL) {
         my.bids = atoi(value);
       } else { 
         my.bids = 3;
       }
     }
-    else if(strmatch(option, "username")){
+    else if (strmatch(option, "username")) {
       my.username = stralloc(trim(value));
     }
-    else if(strmatch(option, "password")){
+    else if (strmatch(option, "password")) {
       my.password = stralloc(trim(value));
     }
-    else if(strmatch(option, "connection")){
-      if(!strncasecmp(value, "keep-alive", 10))
+    else if (strmatch(option, "connection")) {
+      if (!strncasecmp(value, "keep-alive", 10))
         my.keepalive = TRUE;
       else
         my.keepalive = FALSE; 
     }
-    else if(strmatch(option, "protocol")){
-      if(!strncasecmp(value, "HTTP/1.1", 8))
+    else if (strmatch(option, "protocol")) {
+      if (!strncasecmp(value, "HTTP/1.1", 8))
         my.protocol = TRUE;
       else
         my.protocol = FALSE; 
     }
-    else if(strmatch(option, "proxy-host")){
-      my.proxy.hostname = xstrdup(trim(value));
+    else if (strmatch(option, "proxy-host")) {
+      auth_set_proxy_host(my.auth, trim(value));
     }
-    else if(strmatch(option, "proxy-port")){
-      if(value != NULL){
-        my.proxy.port = atoi(value);
+    else if (strmatch(option, "proxy-port")) {
+      if (value != NULL) {
+        auth_set_proxy_port(my.auth, atoi(value));
       } else {
-        my.proxy.port = 3128;
+        auth_set_proxy_port(my.auth, 3128);
       }
     } 
-    else if(strmatch(option, "proxy-login")){
-      char *usr, *pwd, *rlm, *tmpvalue;
-      usr = tmpvalue = value;
-      while(*tmpvalue && *tmpvalue != ':' && *tmpvalue != '\0')
-        tmpvalue++;
-      *tmpvalue++=0; pwd = tmpvalue;
-      while(*tmpvalue && *tmpvalue != ':' && *tmpvalue != '\0')
-      tmpvalue++;
-      if('\0' != *tmpvalue) {
-	*tmpvalue++=0;
-	rlm = tmpvalue;
-      } else {
-        rlm = NULL;
-      }
-      add_authorization(PROXY, usr, pwd, rlm);  
+    else if (strmatch(option, "ftp-login")) {
+      auth_add(my.auth, new_creds(FTP, value));
     }
-    else if(strmatch(option, "failures")){
-      if(value != NULL){
+    else if (strmatch(option, "proxy-login")) {
+      auth_add(my.auth, new_creds(PROXY, value));
+    }
+    else if (strmatch(option, "failures")) {
+      if (value != NULL) {
         my.failures = atoi(value);
       } else {
         my.failures = 30;
       }
     }
-    else if(strmatch(option, "chunked")){
-      if(!strncasecmp(value, "true", 4))
+    else if (strmatch(option, "chunked")) {
+      if (!strncasecmp(value, "true", 4))
         my.chunked = TRUE;
       else
         my.chunked = FALSE;  
     }
-    else if(strmatch(option, "header")){
-      if(!strchr(value,':')) NOTIFY(FATAL, "no ':' in http-header");
-      if((strlen(value) + strlen(my.extra) + 3) > 512) NOTIFY(FATAL, "too many headers");
+    else if (strmatch(option, "unique")) {
+      if (!strncasecmp(value, "true", 4))
+        my.unique = TRUE;
+      else
+        my.unique = FALSE;  
+    }
+    else if (strmatch(option, "header")) {
+      if (!strchr(value,':')) NOTIFY(FATAL, "no ':' in http-header");
+      if ((strlen(value) + strlen(my.extra) + 3) > 512) NOTIFY(FATAL, "too many headers");
       strcat(my.extra,value);
       strcat(my.extra,"\015\012");
     }
-    else if(strmatch(option, "expire-session")){
+    else if (strmatch(option, "expire-session")) {
       if (!strncasecmp(value, "true", 4 ))
         my.expire = TRUE;
       else
         my.expire = FALSE;
     }
-    else if(strmatch(option, "follow-location")){
-      if ( !strncasecmp( value, "true", 4 ))
+    else if (strmatch(option, "follow-location")) {
+      if (!strncasecmp(value, "true", 4))
         my.follow = TRUE;
       else
         my.follow = FALSE;
     }
-    else if(strmatch(option, "zero-data-ok")){
-      if( !strncasecmp(value, "true", 4))
+    else if (strmatch(option, "url-escaping")) {
+      if (!strncasecmp(value, "true", 4))
+        my.escape = TRUE;
+      else
+        my.escape = FALSE;
+    } 
+    else if (strmatch(option, "zero-data-ok")) {
+      if (!strncasecmp(value, "true", 4))
         my.zero_ok = TRUE;
       else
         my.zero_ok = FALSE;
     } 
-    else if(strmatch(option, "ssl-cert")){
+    else if (strmatch(option, "ssl-cert")) {
       my.ssl_cert = stralloc(value);
     }
-    else if(strmatch(option, "ssl-key")){
+    else if (strmatch(option, "ssl-key")) {
       my.ssl_key = stralloc(value);
     }
-    else if(strmatch(option, "ssl-timeout")){
-      if(value != NULL){
+    else if (strmatch(option, "ssl-timeout")) {
+      if (value != NULL) {
         my.ssl_timeout = atoi(value);
       } else {
         my.ssl_timeout = 15;
       }
     }
-    else if(strmatch(option, "ssl-ciphers")){
+    else if (strmatch(option, "ssl-ciphers")) {
       my.ssl_ciphers = stralloc(value);
     } 
-    else if(strmatch(option, "spinner")){
-      if(!strncasecmp(value, "true", 4))
+    else if (strmatch(option, "spinner")) {
+      if (!strncasecmp(value, "true", 4))
         my.spinner = TRUE;
       else
         my.spinner = FALSE;
@@ -515,23 +540,39 @@ load_conf(char *filename)
 }
 
 /**
- * don't be insulted, the author is the 
- * DS Module in question...   ;-)
+ * don't be insulted, the author is the DS Module   ;-)
  */ 
 void
-ds_module_check( void )
+ds_module_check(void)
 {
-  if( my.bench ){ 
+  if (my.bench) { 
 #if defined(hpux) || defined(__hpux)
     my.delay = 1; 
 #else
     my.delay = 0; 
 #endif
   }
-  if( my.secs > 0 && (( my.reps > 0 ) && ( my.reps != MAXREPS ))){
+
+  if (my.secs > 0 && ((my.reps > 0) && (my.reps != MAXREPS))) {
     NOTIFY(ERROR, "CONFIG conflict: selected time and repetition based testing" );
     fprintf( stderr, "defaulting to time-based testing: %d seconds\n", my.secs );
     my.reps = MAXREPS;
+  }
+
+  if (my.cusers <= 0) {   /* set concurrency to 1 */
+    my.cusers = 1;        /* if not defined       */
+  }
+
+  if (my.get) {
+    my.cusers  = 1;
+    my.reps    = 1;
+    my.logging = FALSE;
+    my.bench   = TRUE;
+  }
+  
+  if (my.quiet) { 
+    my.verbose = FALSE; // Why would you set quiet and verbose???
+    my.debug   = FALSE; // why would you set quiet and debug?????
   }
 }
 

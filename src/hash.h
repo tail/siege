@@ -14,10 +14,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *--
  */
 #ifndef HASH_H
 #define HASH_H
@@ -27,15 +27,17 @@
 # include <unistd.h>
 #endif
 
+#include <joedog/boolean.h>
+
 typedef struct HASH_T *HASH;
 
-HASH   new_hash(ssize_t size);
-void   hash_add(HASH this, char *key, char *value);
-char  *hash_get(HASH this, char *key);
-char **hash_get_keys(HASH this);
-int    hash_lookup(HASH this, char *key);
-void   hash_destroy(HASH this);
-void   hash_free_keys(HASH this, char **keys);
-int    hash_get_entries(HASH this);
+HASH     new_hash();
+void     hash_add(HASH this, char *key, char *value);
+char *   hash_get(HASH this, char *key);
+char **  hash_get_keys(HASH this);
+BOOLEAN  hash_lookup(HASH this, char *key);
+void     hash_destroy(HASH this);
+void     hash_free_keys(HASH this, char **keys);
+int      hash_get_entries(HASH this);
 
 #endif/*HASH_H*/

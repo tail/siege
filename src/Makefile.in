@@ -41,7 +41,7 @@ subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.in
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/utils/mkinstalldirs
@@ -51,8 +51,9 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_siege_OBJECTS = array.$(OBJEXT) auth.$(OBJEXT) base64.$(OBJEXT) \
-	client.$(OBJEXT) cookie.$(OBJEXT) cfg.$(OBJEXT) crew.$(OBJEXT) \
-	data.$(OBJEXT) date.$(OBJEXT) eval.$(OBJEXT) getopt.$(OBJEXT) \
+	client.$(OBJEXT) cookie.$(OBJEXT) cfg.$(OBJEXT) \
+	creds.$(OBJEXT) crew.$(OBJEXT) data.$(OBJEXT) date.$(OBJEXT) \
+	eval.$(OBJEXT) ftp.$(OBJEXT) getopt.$(OBJEXT) \
 	getopt1.$(OBJEXT) handler.$(OBJEXT) hash.$(OBJEXT) \
 	http.$(OBJEXT) init.$(OBJEXT) load.$(OBJEXT) log.$(OBJEXT) \
 	main.$(OBJEXT) md5.$(OBJEXT) sock.$(OBJEXT) ssl.$(OBJEXT) \
@@ -112,7 +113,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-LDFLAGS = $(SSL_LDFLAGS) $(PTHREAD_LDFLAGS)  
+LDFLAGS = @LDFLAGS@
 LDL = @LDL@
 LIBOBJS = @LIBOBJS@
 LIBS = $(SSL_LIBS) 
@@ -189,6 +190,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = $(SSL_INCLUDE)
 AM_CFLAGS = $(PTHREAD_CFLAGS) $(WARN_CFLAGS) $(SSL_CFLAGS)
+AM_LDFLAGS = $(SSL_LDFLAGS) $(PTHREAD_LDFLAGS)  
 siege_LDADD = $(top_srcdir)/lib/joedog/libjoedog.la
 siege_DEPENDENCIES = $(top_srcdir)/lib/joedog/libjoedog.la 
 siege_SOURCES = \
@@ -198,10 +200,12 @@ base64.c   base64.h    \
 client.c   client.h    \
 cookie.c   cookie.h    \
 cfg.c      cfg.h       \
+creds.c    creds.h     \
 crew.c     crew.h      \
 data.c     data.h      \
 date.c     date.h      \
 eval.c     eval.h      \
+ftp.c      ftp.h       \
 getopt.c   getopt1.c   \
 handler.c  handler.h   \
 hash.c     hash.h      \

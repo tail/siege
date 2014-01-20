@@ -16,10 +16,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   
- * --
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 
@@ -181,7 +180,7 @@ split(char pattern, char *s, int *n_words)
        i--; 
     } else {
       words[i] = (char*)xmalloc(SPLITSZ);
-      memset(words[i], 0, SPLITSZ ); 
+      memset(words[i], '\0', SPLITSZ ); 
       memcpy(words[i], (char*)str0, SPLITSZ); 
       words[i][len] = '\0';
     }

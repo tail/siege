@@ -15,9 +15,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 
 AUTOMAKE_OPTIONS  =    foreign no-dependencies 
@@ -47,11 +47,11 @@ SIEGERC           =      $(sysconfdir)/siegerc
 URLSTXT           =      $(sysconfdir)/urls.txt
 
 install-exec-hook: 
-	@if test -f $(SIEGERC); then \
-	  if cmp -s $(srcdir)/siegerc $(SIEGERC); then echo ""; \
+	@if test -f $(DESTDIR)$(SIEGERC); then \
+	  if cmp -s $(srcdir)/siegerc $(DESTDIR)$(SIEGERC); then echo ""; \
 	    else \
-	    echo ' $(INSTALL_DATA) $(srcdir)/siegerc $(SIEGERC).new'; \
-	    $(INSTALL_DATA) $(srcdir)/siegerc $(SIEGERC).new; \
+	    echo ' $(INSTALL_DATA) $(srcdir)/siegerc $(DESTDIR)$(SIEGERC).new'; \
+	    $(INSTALL_DATA) $(srcdir)/siegerc $(DESTDIR)$(SIEGERC).new; \
 	    echo "#####################################################"; \
 	    echo "WARNING: File $(SIEGERC) already exists."; \
 	    echo "         A new resource file has been installed as"; \
@@ -61,20 +61,21 @@ install-exec-hook:
 	    echo "#####################################################"; \
 	  fi; \
 	else \
-	  $(INSTALL_DATA) $(srcdir)/siegerc $(SIEGERC); \
+	  $(mkinstalldirs) $(DESTDIR)$(sysconfdir); \
+	  $(INSTALL_DATA) $(srcdir)/siegerc $(DESTDIR)$(SIEGERC); \
 	fi 
-	@if test -f $(URLSTXT); then \
-	  if cmp -s $(srcdir)/siegerc $(URLSTXT); then echo ""; \
+	@if test -f $(DESTDIR)$(URLSTXT); then \
+	  if cmp -s $(srcdir)/siegerc $(DESTDIR)$(URLSTXT); then echo ""; \
 	    else \
-	    echo "WARNING: File $(URLSTXT) already exists."; \
+	    echo "WARNING: File $(DESTDIR)$(URLSTXT) already exists."; \
 	    echo "         It was NOT replaced with this installation."; \
 	  fi; \
 	else \
-	  $(mkinstalldirs) $(sysconfdir); \
-	  $(INSTALL_DATA) $(srcdir)/urls.txt $(URLSTXT); \
+	  $(mkinstalldirs) $(DESTDIR)$(sysconfdir); \
+	  $(INSTALL_DATA) $(srcdir)/urls.txt $(DESTDIR)$(URLSTXT); \
 	fi 
 
 
 uninstall:
-	rm -f $(SIEGERC)
+	rm -f $(DESTDIR)$(SIEGERC)
 

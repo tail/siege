@@ -1,3 +1,25 @@
+/**
+ * Dynamic Array
+ *
+ * Copyright (C) 2006-2013 by
+ * Jeffrey Fulmer - <jeff@joedog.org>, et al.
+ * This file is distributed as part of Siege
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *--
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,15 +36,16 @@ struct ARRAY_T
   array  *data;
 };
 
+size_t ARRAYSIZE = sizeof(struct ARRAY_T);
+
 
 ARRAY
 new_array(){
   ARRAY this;
 
-  this = xcalloc(sizeof(*this), 1);
+  this = xcalloc(sizeof(struct ARRAY_T), 1);
   this->index  = -1;
   this->length =  0;
-  //this->data   = xmalloc(size * sizeof(char*)); 
   return this;
 }
 
